@@ -25,7 +25,7 @@
         }
 
         .game-board {
-            position: absolute;
+            position: relative;
             top: 50%;
             right: 0;
             transform: translateY(-50%);
@@ -46,6 +46,7 @@
         }
 
         .cell {
+            position: relative;
             border-radius: 16px;
             display: flex;
             align-items: center;
@@ -59,6 +60,27 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .cell img.explode {
+            animation: explode-img 0.5s forwards;
+        }
+
+        @keyframes explode-img {
+            0% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+
+            80% {
+                opacity: 0.7;
+                transform: scale(1.2) rotate(20deg);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(2) rotate(60deg);
+            }
         }
 
         .flash-btn {
@@ -313,6 +335,33 @@
             transition: background 0.2s;
             visibility: hidden;
         }
+
+        @keyframes explode {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        .explode-piece {
+            position: absolute;
+            width: 33.33%;
+            height: 33.33%;
+            pointer-events: none;
+            border-radius: 6px;
+            transition: transform 1.2s cubic-bezier(.5, -0.2, .7, 1.5), opacity 1.2s;
+            z-index: 10;
+        }
     </style>
 </head>
 
@@ -433,12 +482,65 @@
             const img = document.createElement('img');
             img.src = `../../resources/pictures/${i}.jpg`;
             cell.appendChild(img);
-            // בלחיצה על תא - פתח פופאפ עם משימה אקראית
-            cell.addEventListener('click', () => {
-                const randomTask = window.tasks[Math.floor(Math.random() * window.tasks.length)];
-                document.getElementById('task-text').innerText = randomTask;
-                document.getElementById('task-popup').style.display = 'flex';
+
+            cell.addEventListener('click', function () {
+                if (img.style.display === 'none') return; // לא לאפשר פיצוץ כפול
+                img.style.display = 'none';
+
+                // מיקום התא ביחס ללוח
+                const cellRect = cell.getBoundingClientRect();
+                const boardRect = board.getBoundingClientRect();
+                const offsetX = cellRect.left - boardRect.left;
+                const offsetY = cellRect.top - boardRect.top;
+                const cellW = cellRect.width;
+                const cellH = cellRect.height;
+
+                let piecesCount = 0;
+                for (let y = 0; y < 3; y++) {
+                    for (let x = 0; x < 3; x++) {
+                        piecesCount++;
+                        const piece = document.createElement('div');
+                        piece.className = 'explode-piece';
+                        piece.style.backgroundImage = `url(${img.src})`;
+                        piece.style.backgroundSize = '100% 100%';
+                        piece.style.backgroundPosition = `${-x * 33.33}% ${-y * 33.33}%`;
+                        piece.style.width = cellW / 3 + 'px';
+                        piece.style.height = cellH / 3 + 'px';
+                        piece.style.position = 'absolute';
+                        piece.style.left = (offsetX + x * cellW / 3) + 'px';
+                        piece.style.top = (offsetY + y * cellH / 3) + 'px';
+                        piece.style.borderRadius = '6px';
+                        piece.style.pointerEvents = 'none';
+                        piece.style.opacity = 1;
+                        board.appendChild(piece);
+
+                        // תנועה אקראית לכל חלק - יותר רחוק
+                        const angle = Math.random() * 2 * Math.PI;
+                        const distance = 350 + Math.random() * 250; // יותר גדול
+                        const dx = Math.cos(angle) * distance;
+                        const dy = Math.sin(angle) * distance;
+                        setTimeout(() => {
+                            piece.style.transition = 'transform 1.2s cubic-bezier(.5,-0.2,.7,1.5), opacity 1.2s';
+                            piece.style.transform = `translate(${dx}px, ${dy}px) rotate(${Math.random() * 1080 - 540}deg) scale(1.1)`;
+                            piece.style.opacity = 0.85; // פחות שקוף
+                        }, 20);
+
+                        // הסרה אחרי האנימציה (קצת יותר זמן)
+                        setTimeout(() => {
+                            piece.remove();
+                            piecesCount--;
+                            if (piecesCount === 0) {
+                                cell.style.background = '#fff';
+                            }
+                        }, 1300);
+                    }
+                }
+                // הצגת פופאפ משימה (בהערה)
+                // const randomTask = window.tasks[Math.floor(Math.random() * window.tasks.length)];
+                // document.getElementById('task-text').innerText = randomTask;
+                // document.getElementById('task-popup').style.display = 'flex';
             });
+
             board.appendChild(cell);
         }
         // סגירת הפופאפ
