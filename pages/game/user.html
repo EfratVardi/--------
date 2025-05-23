@@ -295,6 +295,24 @@
             background: #e53935;
             color: #fff;
         }
+
+        .current-turn {
+            position: fixed;
+            top: 24px;
+            left: 40px;
+            background: rgba(255, 255, 255, 0.85);
+            color: #222;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 16px;
+            padding: 12px 28px;
+            box-shadow: 0 2px 12px #0002;
+            z-index: 300;
+            min-width: 180px;
+            text-align: center;
+            transition: background 0.2s;
+            visibility: hidden;
+        }
     </style>
 </head>
 
@@ -326,6 +344,7 @@
                 <button id="close-dice">אישור</button>
             </div>
         </div>
+        <div id="current-turn" class="current-turn"></div>
     </div>
     <script src="../../resources/tasks.js"></script>
     <script>
@@ -404,6 +423,10 @@
         // סגירת הקוביה
         document.getElementById('close-dice').onclick = function () {
             document.getElementById('dice-popup').style.display = 'none';
+            // עדכון תצוגת התור הנוכחי
+             document.getElementById('current-turn').style.visibility = 'visible';
+            document.getElementById('current-turn').innerHTML =
+                `התור של קבוצת: <span style="color:${teams[lastTeamIdx].color};">${teams[lastTeamIdx].name}</span>`;
         };
 
         const boardSize = 5;
