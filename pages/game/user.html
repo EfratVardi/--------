@@ -426,6 +426,15 @@
             cursor: pointer;
         }
 
+        button:focus,
+        .flash-btn:focus,
+        #close-popup:focus,
+        #close-dice:focus,
+        #exit-btn:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
         .win-seq {
             box-shadow: 0 0 0 8px #000, 0 0 32px 12px var(--team-color, #000c) !important;
             animation: none !important;
@@ -722,7 +731,7 @@
                 const img = cell.querySelector('img');
                 if (img) img.remove();
                 // הצגת תמונת מוקש
-                cell.style.background = 'url("../../resources/mine.png") center/70% no-repeat #fff';
+                cell.style.background = 'url("../../resources/mine.png") center center / cover no-repeat #fff';
             } else {
                 state.lastType = 'color';
                 // הסר את התמונה אם קיימת
