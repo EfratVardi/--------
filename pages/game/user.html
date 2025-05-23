@@ -383,10 +383,6 @@
             if (isRolling) return;
             isRolling = true;
 
-            // אם נשארה קבוצה אחת בסבב, והיא אותה קבוצה מהתור האחרון, נבצע ערבוב מחדש
-            if (roundOrder.length === 1 && roundOrder[0] === lastTeamIdx) {
-                newRound();
-            }
             if (roundOrder.length === 0) {
                 newRound();
             }
