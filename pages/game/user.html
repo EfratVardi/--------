@@ -5,6 +5,13 @@
     <meta charset="utf-8" />
     <title>לוח רגשות</title>
     <style>
+        @font-face {
+            font-family: 'VarelaRound';
+            src: url('../../resources/fonts/VarelaRound-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         body,
         html {
             height: 100%;
@@ -364,18 +371,78 @@
         }
 
         .cell.owned {
-            box-shadow: 0 0 0 4px #fff, 0 0 16px 6px var(--team-color, #000);
-            animation: owned-glow 1s infinite alternate;
+            box-shadow: 0 0 0 0px var(--team-color, #000), 0 0 10px 2px var(--team-color, #0008);
+            animation: owned-glow 0.4s infinite alternate;
         }
 
         @keyframes owned-glow {
             0% {
-                box-shadow: 0 0 0 4px #fff, 0 0 16px 6px var(--team-color, #000);
+                box-shadow: 0 0 0 0px var(--team-color, #000), 0 0 10px 2px var(--team-color, #0008);
             }
 
             100% {
-                box-shadow: 0 0 0 4px #fff, 0 0 32px 16px var(--team-color, #0008);
+                box-shadow: 0 0 0 0px var(--team-color, #000), 0 0 18px 6px var(--team-color, #000c);
             }
+        }
+
+        #win-overlay {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+
+        #win-text {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        #exit-btn {
+            font-size: 1.5rem;
+            padding: 18px 48px;
+            border-radius: 18px;
+            background: #e53935;
+            color: #fff;
+            border: none;
+            box-shadow: 0 2px 12px #0003;
+            cursor: pointer;
+        }
+
+        .win-seq {
+            box-shadow: 0 0 0 8px #000, 0 0 32px 12px var(--team-color, #000c) !important;
+            animation: none !important;
+            z-index: 20;
+            transform: scale(1.08);
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        body,
+        html,
+        .popup-content,
+        .dice-content,
+        #win-text,
+        .current-turn,
+        button,
+        .cell {
+            font-family: 'Varela Round', Arial, sans-serif !important;
         }
     </style>
 </head>
@@ -409,6 +476,11 @@
             </div>
         </div>
         <div id="current-turn" class="current-turn"></div>
+        <div id="win-overlay" style="display:none; position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.95);align-items:center;justify-content:center;flex-direction:column;">
+            <canvas id="confetti-canvas" style="position:absolute;top:0;left:0;width:100vw;height:100vh;pointer-events:none;"></canvas>
+            <div id="win-text" style="font-size:3.5rem;font-weight:bold;margin-bottom:40px;text-align:center;"></div>
+            <button id="exit-btn" style="font-size:1.5rem;padding:18px 48px;border-radius:18px;background:#e53935;color:#fff;border:none;box-shadow:0 2px 12px #0003;cursor:pointer;">יציאה</button>
+        </div>
     </div>
     <script src="../../resources/tasks.js"></script>
     <script>
@@ -423,6 +495,7 @@
         let lastTeamIdx = null;
         let isRolling = false;
         let canExplode = false;
+        let totalMines = 0;
 
         // פונקציה לערבוב מערך
         function shuffle(array) {
@@ -504,6 +577,10 @@
         for (let i = 1; i <= boardSize * boardSize; i++) {
             const cell = document.createElement('div');
             cell.className = 'cell';
+            const row = Math.floor((i - 1) / boardSize);
+            const col = (i - 1) % boardSize;
+            cell.dataset.row = row;
+            cell.dataset.col = col;
             const img = document.createElement('img');
             img.src = `../../resources/pictures/${i}.jpg`;
             cell.appendChild(img);
@@ -580,10 +657,18 @@
             let options = [];
 
             // בדיקת אפשרויות חוקיות
-            if (state.tasksCount < 3 && state.lastType !== 'task' && state.tasksUsed.length < window.tasks.length) {
+            if (
+                state.tasksCount < 3 &&
+                state.lastType !== 'task' &&
+                state.tasksUsed.length < window.tasks.length
+            ) {
                 options.push('task');
             }
-            if (state.minesCount < 2 && state.lastType !== 'mine') {
+            if (
+                state.minesCount < 2 &&
+                state.lastType !== 'mine' &&
+                totalMines < 3 // לא יותר מ-3 מוקשים בלוח
+            ) {
                 options.push('mine');
             }
             if (state.lastType !== 'color') {
@@ -617,10 +702,25 @@
                     cell.classList.add('owned');
                     cell.style.setProperty('--team-color', teams[teamIdx].color);
                     cell.dataset.owned = "1";
+                    cell.dataset.owner = teamIdx; // הוסף שורה זו
+                    const row = Number(cell.dataset.row);
+                    const col = Number(cell.dataset.col);
+                    const winCells = checkWin(row, col, teamIdx);
+                    if (winCells) {
+                        winCells.forEach(cell => cell.classList.add('win-seq'));
+                        setTimeout(() => {
+                            winCells.forEach(cell => cell.classList.remove('win-seq'));
+                            showWin(teams[teamIdx].name, teams[teamIdx].color);
+                        }, 3000);
+                    }
                 };
             } else if (chosenType === 'mine') {
                 state.minesCount++;
+                totalMines++; // הוסף שורה זו
                 state.lastType = 'mine';
+                // הסר את התמונה אם קיימת
+                const img = cell.querySelector('img');
+                if (img) img.remove();
                 // הצגת תמונת מוקש
                 cell.style.background = 'url("../../resources/mine.png") center/70% no-repeat #fff';
             } else {
@@ -633,6 +733,17 @@
                 cell.classList.add('owned');
                 cell.style.setProperty('--team-color', teams[teamIdx].color);
                 cell.dataset.owned = "1";
+                cell.dataset.owner = teamIdx; // הוסף שורה זו
+                const row = Number(cell.dataset.row);
+                const col = Number(cell.dataset.col);
+                const winCells = checkWin(row, col, teamIdx);
+                if (winCells) {
+                    winCells.forEach(cell => cell.classList.add('win-seq'));
+                    setTimeout(() => {
+                        winCells.forEach(cell => cell.classList.remove('win-seq'));
+                        showWin(teams[teamIdx].name, teams[teamIdx].color);
+                    }, 3000);
+                }
             }
         }
         // סגירת הפופאפ
@@ -648,6 +759,97 @@
                 e.preventDefault();
             }
         });
+
+        function checkWin(row, col, teamIdx) {
+            // אופקי
+            let cells = [document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`)];
+            for (let d = -1; d <= 1; d += 2) {
+                let c = col + d;
+                while (c >= 0 && c < boardSize) {
+                    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${c}"]`);
+                    if (cell && cell.dataset.owner == teamIdx) {
+                        cells.push(cell);
+                        c += d;
+                    } else break;
+                }
+            }
+            if (cells.length >= 3) return cells;
+
+            // אנכי
+            cells = [document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`)];
+            for (let d = -1; d <= 1; d += 2) {
+                let r = row + d;
+                while (r >= 0 && r < boardSize) {
+                    const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${col}"]`);
+                    if (cell && cell.dataset.owner == teamIdx) {
+                        cells.push(cell);
+                        r += d;
+                    } else break;
+                }
+            }
+            if (cells.length >= 3) return cells;
+
+            return null;
+        }
+
+        function showWin(teamName, teamColor) {
+            // חסימת כל הלחיצות
+            canExplode = false;
+            document.querySelector('.flash-btn').disabled = true;
+
+            // הצגת שכבת זכייה
+            const overlay = document.getElementById('win-overlay');
+            overlay.style.display = 'flex';
+            document.getElementById('win-text').innerHTML = `כל הכבוד!<br>הקבוצה הזוכה:<br><span style="color:${teamColor};font-size:4rem;">${teamName}</span>`;
+
+            // קונפטי
+            launchConfetti(teamColor);
+
+            // כפתור יציאה
+            document.getElementById('exit-btn').onclick = function () {
+               expose.appClose()
+            };
+        }
+
+        function launchConfetti(mainColor) {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const colors = [mainColor, "#fbc02d", "#43a047", "#1e88e5", "#fff", "#e53935"];
+            let pieces = [];
+            for (let i = 0; i < 180; i++) {
+                pieces.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * -canvas.height,
+                    w: 10 + Math.random() * 12,
+                    h: 18 + Math.random() * 12,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    angle: Math.random() * 2 * Math.PI,
+                    speed: 2 + Math.random() * 4,
+                    spin: Math.random() * 0.2 - 0.1
+                });
+            }
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (const p of pieces) {
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.angle);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                    ctx.restore();
+                    p.y += p.speed;
+                    p.angle += p.spin;
+                    if (p.y > canvas.height + 40) {
+                        p.y = -20;
+                        p.x = Math.random() * canvas.width;
+                    }
+                }
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
     </script>
 </body>
 
