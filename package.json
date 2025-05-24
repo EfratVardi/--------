@@ -1,7 +1,7 @@
 {
-  "name": "accumulatingpoints",
-  "productName": "צבירת נקודות",
-  "description": "צבירת נקודות דיגיטלית",
+  "name": "emotionalgame",
+  "productName": "מרגיש לי",
+  "description": "תוכנית חינוכית",
   "version": "1.0.8",
   "main": "main.js",
   "scripts": {

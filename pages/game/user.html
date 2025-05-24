@@ -3,459 +3,10 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>לוח רגשות</title>
-    <style>
-        @font-face {
-            font-family: 'VarelaRound';
-            src: url('../../resources/fonts/VarelaRound-Regular.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }
-
-        body,
-        html {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            direction: rtl;
-            box-sizing: border-box;
-        }
-
-        .background {
-            width: 100vw;
-            height: 100vh;
-            background: url('../../resources/background.jpg') no-repeat center center;
-            background-size: cover;
-            position: fixed;
-            top: 0;
-            left: 0;
-        }
-
-        .game-board {
-            position: relative;
-            top: 50%;
-            right: 0;
-            transform: translateY(-50%);
-            width: 75vw;
-            max-width: 900px;
-            height: 85vh;
-            max-height: 900px;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(5, 1fr);
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.7);
-            /* לבן אטום יותר */
-            border-radius: 24px;
-            box-shadow: 0 0 30px #0003;
-            padding: 20px;
-            margin-right: 40px;
-        }
-
-        .cell {
-            position: relative;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            transition: box-shadow 0.2s;
-            box-shadow: 0 2px 8px #0002;
-        }
-
-        .cell img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .cell img.explode {
-            animation: explode-img 0.5s forwards;
-        }
-
-        @keyframes explode-img {
-            0% {
-                opacity: 1;
-                transform: scale(1) rotate(0deg);
-            }
-
-            80% {
-                opacity: 0.7;
-                transform: scale(1.2) rotate(20deg);
-            }
-
-            100% {
-                opacity: 0;
-                transform: scale(2) rotate(60deg);
-            }
-        }
-
-        .flash-btn {
-            position: fixed;
-            bottom: 40px;
-            left: 40px;
-            transform: none;
-            padding: 18px 32px;
-            font-size: 1.3rem;
-            background: #ffeb3b;
-            color: #222;
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 2px 12px #0003;
-            cursor: pointer;
-            font-weight: bold;
-            animation: flash 1s infinite alternate;
-            z-index: 10;
-        }
-
-        @keyframes flash {
-            0% {
-                box-shadow: 0 0 20px 5px #ffeb3b, 0 2px 12px #0003;
-            }
-
-            100% {
-                box-shadow: 0 0 40px 15px #ff9800, 0 2px 12px #0003;
-            }
-        }
-
-        .popup {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            right: 0;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .popup-content {
-            background: #fff;
-            border-radius: 32px;
-            padding: 48px 48px 32px 48px;
-            box-shadow: 0 4px 32px #0004;
-            min-width: 400px;
-            min-height: 300px;
-            max-width: 90vw;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-size: 1.5rem;
-            font-family: inherit;
-            position: relative;
-        }
-
-        #close-popup {
-            margin-top: 32px;
-            padding: 12px 32px;
-            background: #4caf50;
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        #close-popup:hover {
-            background: #388e3c;
-        }
-
-        .dice-popup {
-            display: none;
-            position: fixed;
-            z-index: 200;
-            right: 0;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .dice-content {
-            background: #fff;
-            border-radius: 32px;
-            padding: 48px 48px 32px 48px;
-            box-shadow: 0 4px 32px #0004;
-            min-width: 340px;
-            min-height: 320px;
-            max-width: 90vw;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-size: 1.5rem;
-            font-family: inherit;
-            position: relative;
-        }
-
-        .cube-container {
-            width: 140px;
-            height: 140px;
-            perspective: 800px;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .cube {
-            width: 120px;
-            height: 120px;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 2s cubic-bezier(.68, -0.55, .27, 1.55);
-        }
-
-        .face {
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            border-radius: 18px;
-            border: 4px solid #fff;
-        }
-
-        .face-front {
-            background: #e53935;
-            transform: rotateY(0deg) translateZ(60px);
-        }
-
-        .face-back {
-            background: #1e88e5;
-            transform: rotateY(180deg) translateZ(60px);
-        }
-
-        .face-right {
-            background: #fbc02d;
-            transform: rotateY(90deg) translateZ(60px);
-        }
-
-        .face-left {
-            background: #43a047;
-            transform: rotateY(-90deg) translateZ(60px);
-        }
-
-        .face-top {
-            background: #fff;
-            transform: rotateX(90deg) translateZ(60px);
-        }
-
-        .face-bottom {
-            background: #fff;
-            transform: rotateX(-90deg) translateZ(60px);
-        }
-
-        .dice-label {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 24px;
-        }
-
-        #close-dice {
-            margin-top: 12px;
-            padding: 12px 32px;
-            background: #1976d2;
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        #close-dice:hover {
-            background: #0d47a1;
-        }
-
-        .cube.rolling {
-            animation: cube-spin 2s cubic-bezier(.68, -0.55, .27, 1.55);
-        }
-
-        @keyframes cube-spin {
-            0% {
-                transform: rotateY(0deg) rotateX(0deg);
-            }
-
-            80% {
-                transform: rotateY(720deg) rotateX(360deg);
-            }
-
-            100% {
-                /* הסיבוב הסופי ייקבע ב-JS */
-            }
-        }
-
-        .close-dice-btn {
-            position: absolute;
-            left: 24px;
-            bottom: 24px;
-            width: 36px;
-            height: 36px;
-            border: none;
-            border-radius: 50%;
-            background: #eee;
-            color: #333;
-            font-size: 1.5rem;
-            box-shadow: 0 2px 8px #0002;
-            cursor: pointer;
-            transition: background 0.2s;
-            z-index: 10;
-        }
-
-        .close-dice-btn::before {
-            content: "✖";
-            font-size: 1.3em;
-            line-height: 36px;
-            display: block;
-        }
-
-        .close-dice-btn:hover {
-            background: #e53935;
-            color: #fff;
-        }
-
-        .current-turn {
-            position: fixed;
-            top: 24px;
-            left: 40px;
-            background: rgba(255, 255, 255, 0.85);
-            color: #222;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border-radius: 16px;
-            padding: 12px 28px;
-            box-shadow: 0 2px 12px #0002;
-            z-index: 300;
-            min-width: 180px;
-            text-align: center;
-            transition: background 0.2s;
-            visibility: hidden;
-        }
-
-        @keyframes explode {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-
-            50% {
-                transform: scale(1.2);
-                opacity: 0.7;
-            }
-
-            100% {
-                transform: scale(0);
-                opacity: 0;
-            }
-        }
-
-        .explode-piece {
-            position: absolute;
-            width: 33.33%;
-            height: 33.33%;
-            pointer-events: none;
-            border-radius: 6px;
-            transition: transform 1.2s cubic-bezier(.5, -0.2, .7, 1.5), opacity 1.2s;
-            z-index: 10;
-        }
-
-        .cell.owned {
-            box-shadow: 0 0 0 0px var(--team-color, #000), 0 0 10px 2px var(--team-color, #0008);
-            animation: owned-glow 0.4s infinite alternate;
-        }
-
-        @keyframes owned-glow {
-            0% {
-                box-shadow: 0 0 0 0px var(--team-color, #000), 0 0 10px 2px var(--team-color, #0008);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0px var(--team-color, #000), 0 0 18px 6px var(--team-color, #000c);
-            }
-        }
-
-        #win-overlay {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(255, 255, 255, 0.95);
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-
-        #confetti-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-        }
-
-        #win-text {
-            font-size: 3.5rem;
-            font-weight: bold;
-            margin-bottom: 40px;
-            text-align: center;
-        }
-
-        #exit-btn {
-            font-size: 1.5rem;
-            padding: 18px 48px;
-            border-radius: 18px;
-            background: #e53935;
-            color: #fff;
-            border: none;
-            box-shadow: 0 2px 12px #0003;
-            cursor: pointer;
-        }
-
-        button:focus,
-        .flash-btn:focus,
-        #close-popup:focus,
-        #close-dice:focus,
-        #exit-btn:focus {
-            outline: none !important;
-            box-shadow: none !important;
-        }
-
-        .win-seq {
-            box-shadow: 0 0 0 8px #000, 0 0 32px 12px var(--team-color, #000c) !important;
-            animation: none !important;
-            z-index: 20;
-            transform: scale(1.08);
-            transition: box-shadow 0.2s, transform 0.2s;
-        }
-
-        body,
-        html,
-        .popup-content,
-        .dice-content,
-        #win-text,
-        .current-turn,
-        button,
-        .cell {
-            font-family: 'Varela Round', Arial, sans-serif !important;
-        }
-    </style>
+    <title>מרגיש לי</title>
+    <link rel="stylesheet" href="../../styleSheets/user.css">
 </head>
-
+<style></style>
 <body>
     <div class="background">
         <button class="flash-btn">הגרל תור חדש</button>
@@ -481,7 +32,6 @@
                     </div>
                 </div>
                 <div id="dice-label" class="dice-label"></div>
-                <button id="close-dice">אישור</button>
             </div>
         </div>
         <div id="current-turn" class="current-turn"></div>
@@ -505,6 +55,7 @@
         let isRolling = false;
         let canExplode = false;
         let totalMines = 0;
+        let globalTasksUsed = [];
 
         // פונקציה לערבוב מערך
         function shuffle(array) {
@@ -529,6 +80,7 @@
         document.querySelector('.flash-btn').onclick = function () {
             if (isRolling) return;
             isRolling = true;
+            document.querySelector('.flash-btn').disabled = true; // נעל את הכפתור
 
             if (roundOrder.length === 0) {
                 newRound();
@@ -561,16 +113,17 @@
                 diceLabel.innerHTML = `התור של קבוצת:  <span style="color:${teams[teamIdx].color};">${teams[teamIdx].name}</span>`;
                 isRolling = false;
                 canExplode = true; // אפשר לפוצץ ריבוע בתור הזה
-            }, 2100);
-        };
 
-        // סגירת הקוביה
-        document.getElementById('close-dice').onclick = function () {
-            document.getElementById('dice-popup').style.display = 'none';
-            // עדכון תצוגת התור הנוכחי
-             document.getElementById('current-turn').style.visibility = 'visible';
-            document.getElementById('current-turn').innerHTML =
-                `התור של קבוצת: <span style="color:${teams[lastTeamIdx].color};">${teams[lastTeamIdx].name}</span>`;
+                // סגור את הפופאפ אוטומטית אחרי 3 שניות
+                setTimeout(() => {
+                    dicePopup.style.display = 'none';
+                    document.getElementById('current-turn').style.visibility = 'visible';
+                    document.getElementById('current-turn').innerHTML =
+                        `התור של קבוצת: <span style="color:${teams[teamIdx].color};">${teams[teamIdx].name}</span>`;
+                    document.querySelector('.flash-btn').disabled = false; // פותח את הכפתור
+                }, 3000);
+
+            }, 2100);
         };
 
         const boardSize = 5;
@@ -674,9 +227,9 @@
                 options.push('task');
             }
             if (
-                state.minesCount < 2 &&
+                state.minesCount < 1 &&
                 state.lastType !== 'mine' &&
-                totalMines < 3 // לא יותר מ-3 מוקשים בלוח
+                totalMines < 2 // לא יותר מ-2 מוקשים בלוח
             ) {
                 options.push('mine');
             }
@@ -684,18 +237,34 @@
                 options.push('color');
             }
 
-            // אם אין אפשרות חוקית (נדיר), נאפשר color
-            if (options.length === 0) options = ['color'];
-
-            // בוחרים באקראי מתוך האפשרויות החוקיות
-            const chosenType = options[Math.floor(Math.random() * options.length)];
+            // נרמל הסתברויות רק לאפשרויות החוקיות
+            let total = options.reduce((sum, opt) => sum + probabilities[opt], 0);
+            let rand = Math.random();
+            let acc = 0;
+            let chosenType = options[0];
+            for (let opt of options) {
+                acc += probabilities[opt] / total;
+                if (rand < acc) {
+                    chosenType = opt;
+                    break;
+                }
+            }
 
             if (chosenType === 'task') {
-                // מגרילים משימה שלא בוצעה
-                const availableTasks = window.tasks
+                // מגרילים משימה שלא בוצעה ע"י אף קבוצה
+                let availableTasks = window.tasks
                     .map((task, idx) => ({ task, idx }))
-                    .filter(({ idx }) => !state.tasksUsed.includes(idx));
+                    .filter(({ idx }) => !globalTasksUsed.includes(idx));
+
+                // אם נגמרו כל המשימות, אפשר לבחור מתוך משימות שטרם בוצעו ע"י הקבוצה הנוכחית
+                if (availableTasks.length === 0) {
+                    availableTasks = window.tasks
+                        .map((task, idx) => ({ task, idx }))
+                        .filter(({ idx }) => !state.tasksUsed.includes(idx));
+                }
+
                 const randomTaskObj = availableTasks[Math.floor(Math.random() * availableTasks.length)];
+                globalTasksUsed.push(randomTaskObj.idx);
                 state.tasksUsed.push(randomTaskObj.idx);
                 state.tasksCount++;
                 state.lastType = 'task';
@@ -859,6 +428,12 @@
             }
             draw();
         }
+
+        const probabilities = {
+            task: 0.45,
+            mine: 0.10,
+            color: 0.45
+        };
     </script>
 </body>
 
