@@ -15,8 +15,10 @@ function createWindow() {
     }
   })
   mainWindow.loadFile('pages/main/user.html')
-  mainWindow.setMenuBarVisibility(false)
-  mainWindow.setMenu(null)
+  if (app.isPackaged) {
+    mainWindow.setMenuBarVisibility(false)
+    mainWindow.setMenu(null)
+  }
   if (!app.isPackaged) {
     mainWindow.menuBarVisible = true
   }
