@@ -72,10 +72,10 @@
     <script src="../../resources/tasks.js"></script>
     <script>
         const teams = [
-            { name: "אדום", color: "#e53935" },
-            { name: "צהוב", color: "#fbc02d" },
-            { name: "ירוק", color: "#43a047" },
-            { name: "כחול", color: "#1e88e5" }
+            { name: "אדום", color: "#e53935", gif: "red.gif" },
+            { name: "צהוב", color: "#fbc02d", gif: "yellow.gif" },
+            { name: "ירוק", color: "#43a047", gif: "green.gif" },
+            { name: "כחול", color: "#1e88e5", gif: "blue.gif" }
         ];
 
         let roundOrder = [];
@@ -366,10 +366,10 @@
                 if (img) img.remove();
                 playSound('sound-fail');
                 showActionPopup(
-                    "אוי, נתקלתן במוקש...",
-                    `<img src="../../resources/pictures/mine.png" alt="מוקש">`,
+                    "אוי, עליתן על מוקש...",
+                    `<img src="../../resources/gifs/mine.gif" alt="מוקש">`,
                     function () {
-                        cell.style.background = 'url("../../resources/pictures/mine.png") center center / cover no-repeat #fff';
+                        cell.style.background = 'url("../../resources/gifs/mine.gif") center center / cover no-repeat #fff';
                     },
                     true // <-- פופאפ ייסגר אוטומטית
                 );
@@ -379,19 +379,33 @@
                 if (img) img.remove();
                 playSound('sound-suc');
                 showActionPopup(
-                    "יששש, זכיתןןן!",
-                    `<img src="../../resources/pictures/mine.png" alt="זכיה">`,
+                    "איזה כיף! קיבלתן צ'ופר...!!",
+                    `<img src="../../resources/gifs/${teams[teamIdx].gif}" alt="זכיה">`,
                     function () {
-                        cell.style.background = teams[teamIdx].color;
+                        // במקום לצבוע את התא, נציג גיף לפי הקבוצה
+                        const img = cell.querySelector('img');
+                        if (img) img.remove();
+                        cell.style.background = "#fff";
+                        const gif = document.createElement('img');
+                        gif.src = `../../resources/gifs/${teams[teamIdx].gif}`;
+                        gif.alt = "זכיה";
+                        gif.style.width = "100%";
+                        gif.style.height = "100%";
+                        gif.style.objectFit = "cover";
+                        cell.appendChild(gif);
+
+                        // *** הוסיפי את השורות הבאות ***
                         cell.classList.add('owned');
                         cell.style.setProperty('--team-color', teams[teamIdx].color);
                         cell.dataset.owned = "1";
                         cell.dataset.owner = teamIdx;
+
                         // בדיקת ניצחון
                         const row = Number(cell.dataset.row);
                         const col = Number(cell.dataset.col);
                         const winCells = checkWin(row, col, teamIdx);
                         if (winCells) {
+                            playSound('sound-win');
                             winCells.forEach(cell => cell.classList.add('win-seq'));
                             setTimeout(() => {
                                 winCells.forEach(cell => cell.classList.remove('win-seq'));
@@ -399,7 +413,7 @@
                             }, 3000);
                         }
                     },
-                    true // <-- פופאפ ייסגר אוטומטית
+                    true // פופאפ ייסגר אוטומטית
                 );
             }
         }
