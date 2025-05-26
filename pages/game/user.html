@@ -7,43 +7,7 @@
     <link rel="stylesheet" href="../../styleSheets/user.css">
 </head>
 <style>
-    .action-popup {
-        display: none;
-        position: fixed;
-        z-index: 9999;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.35);
-        align-items: center;
-        justify-content: center;
-    }
 
-    .action-popup-content {
-        background: #fff;
-        border-radius: 36px;
-        box-shadow: 0 8px 48px #0005;
-        min-width: 70vw;
-        min-height: 60vh;
-        max-width: 90vw;
-        max-height: 90vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 64px 32px 48px 32px;
-        font-size: 2.5rem;
-        text-align: center;
-        position: relative;
-    }
-
-    #action-popup-img img,
-    #action-popup-img video {
-        max-width: 180px;
-        max-height: 180px;
-        margin-bottom: 24px;
-    }
 </style>
 
 <body>
@@ -51,10 +15,20 @@
         <button class="flash-btn">הגרל תור חדש</button>
         <div id="game-board" class="game-board"></div>
         <!-- פופאפ למשימה -->
-        <div id="task-popup" class="popup" style="display:none;">
-            <div class="popup-content">
-                <span id="task-text"></span>
-                <button id="close-popup">אישור</button>
+        <div id="task-popup" class="action-popup" style="display:none;">
+            <div class="action-popup-content">
+                <div id="task-popup-text"></div>
+                <div id="task-popup-timer" style="display:none; margin: 24px 0;">
+                    <video id="timer-video" width="300" height="300" controls
+                        style="background:#000; border-radius:24px;">
+                        <source src="../../resources/videos/timer.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div id="task-popup-buttons" style="margin-top:32px; display:flex; gap:24px;">
+                    <button id="start-timer-btn" class="popup-btn">התחל טיימר</button>
+                    <button id="task-done-btn" class="popup-btn">הושלמה המשימה</button>
+                    <button id="task-fail-btn" class="popup-btn">המשימה לא הושלמה</button>
+                </div>
             </div>
         </div>
         <!-- קוביית תור צבעונית -->
@@ -90,6 +64,12 @@
             </div>
         </div>
     </div>
+    <audio id="bg-music" src="../../resources/music/background.mp3" loop></audio>
+    <audio id="sound-boom" src="../../resources/music/boom.mp3"></audio>
+    <audio id="sound-fail" src="../../resources/music/fail.mp3"></audio>
+    <audio id="sound-suc" src="../../resources/music/suc.mp3"></audio>
+    <audio id="sound-lottery" src="../../resources/music/lottery.mp3"></audio>
+    <audio id="sound-win" src="../../resources/music/win.mp3"></audio>
     <script src="../../resources/tasks.js"></script>
     <script>
         const teams = [
@@ -173,16 +153,19 @@
                 }, 3000);
 
             }, 2100);
+
+            // לפני או אחרי סיבוב הקוביה
+            playSound('sound-lottery');
         };
 
         const boardSize = 5;
         const board = document.getElementById('game-board');
         // מצב לכל קבוצה
         const teamState = [
-            { tasksCount: 0, minesCount: 0, lastType: null},
-            { tasksCount: 0, minesCount: 0, lastType: null},
-            { tasksCount: 0, minesCount: 0, lastType: null},
-            { tasksCount: 0, minesCount: 0, lastType: null}
+            { tasksCount: 0, minesCount: 0, lastType: null },
+            { tasksCount: 0, minesCount: 0, lastType: null },
+            { tasksCount: 0, minesCount: 0, lastType: null },
+            { tasksCount: 0, minesCount: 0, lastType: null }
         ];
 
         for (let i = 1; i <= boardSize * boardSize; i++) {
@@ -256,11 +239,14 @@
                         }, 1300);
                     }
                 }
+
+                // לפני תחילת אפקט הפיצוץ
+                playSound('sound-boom');
             });
 
             board.appendChild(cell);
         }
-        
+
         function showActionPopup(text, html, onClose, autoClose = false) {
             const popup = document.getElementById('action-popup');
             document.getElementById('action-popup-text').innerHTML = text;
@@ -328,11 +314,24 @@
                 globalTasksUsed.push(randomTaskObj.idx);
                 state.tasksCount++;
                 state.lastType = 'task';
-                // הצגת פופאפ משימה
-                document.getElementById('task-text').innerText = randomTaskObj.task;
+                // הצגת פופאפ משימה חדש
+                document.getElementById('task-popup-text').innerText = randomTaskObj.task;
+                document.getElementById('task-popup-timer').style.display = 'none';
                 document.getElementById('task-popup').style.display = 'flex';
-                // לאחר אישור: צובעים את התא בצבע הקבוצה
-                document.getElementById('close-popup').onclick = function () {
+
+                // כפתור טיימר
+                document.getElementById('start-timer-btn').onclick = function () {
+                    document.getElementById('task-popup-timer').style.display = 'block';
+                    const video = document.getElementById('timer-video');
+                    video.currentTime = 0;
+                    video.play();
+                    video.onended = function () {
+                        document.getElementById('task-popup-timer').style.display = 'none';
+                    };
+                };
+
+                // כפתור הושלמה המשימה
+                document.getElementById('task-done-btn').onclick = function () {
                     document.getElementById('task-popup').style.display = 'none';
                     const img = cell.querySelector('img');
                     if (img) img.remove();
@@ -340,7 +339,7 @@
                     cell.classList.add('owned');
                     cell.style.setProperty('--team-color', teams[teamIdx].color);
                     cell.dataset.owned = "1";
-                    cell.dataset.owner = teamIdx; // הוסף שורה זו
+                    cell.dataset.owner = teamIdx;
                     const row = Number(cell.dataset.row);
                     const col = Number(cell.dataset.col);
                     const winCells = checkWin(row, col, teamIdx);
@@ -352,17 +351,25 @@
                         }, 3000);
                     }
                 };
+
+                // כפתור המשימה לא הושלמה
+                document.getElementById('task-fail-btn').onclick = function () {
+                    document.getElementById('task-popup').style.display = 'none';
+                    // לא צובעים את התא, לא עושים כלום
+                };
+
             } else if (chosenType === 'mine') {
                 state.minesCount++;
                 totalMines++; // הוסף שורה זו
                 state.lastType = 'mine';
                 const img = cell.querySelector('img');
                 if (img) img.remove();
+                playSound('sound-fail');
                 showActionPopup(
                     "אוי, נתקלתן במוקש...",
-                    `<img src="../../resources/mine.png" alt="מוקש">`,
+                    `<img src="../../resources/pictures/mine.png" alt="מוקש">`,
                     function () {
-                        cell.style.background = 'url("../../resources/mine.png") center center / cover no-repeat #fff';
+                        cell.style.background = 'url("../../resources/pictures/mine.png") center center / cover no-repeat #fff';
                     },
                     true // <-- פופאפ ייסגר אוטומטית
                 );
@@ -370,9 +377,10 @@
                 state.lastType = 'color';
                 const img = cell.querySelector('img');
                 if (img) img.remove();
+                playSound('sound-suc');
                 showActionPopup(
                     "יששש, זכיתןןן!",
-                    `<img src="../../resources/mine.png" alt="זכיה">`,
+                    `<img src="../../resources/pictures/mine.png" alt="זכיה">`,
                     function () {
                         cell.style.background = teams[teamIdx].color;
                         cell.classList.add('owned');
@@ -395,10 +403,6 @@
                 );
             }
         }
-        // סגירת הפופאפ
-        document.getElementById('close-popup').onclick = function () {
-            document.getElementById('task-popup').style.display = 'none';
-        };
 
         document.querySelector('.flash-btn').addEventListener('keydown', function (e) {
             if (
@@ -505,6 +509,21 @@
             mine: 0.10,
             color: 0.30
         };
+
+        // הפעלת מוזיקת רקע בלולאה עם ווליום נמוך
+        const bgMusic = document.getElementById('bg-music');
+        bgMusic.volume = 0.01;
+        bgMusic.play().catch(() => { }); // חלק מהדפדפנים דורשים אינטראקציה ראשונה
+
+        // פונקציה כללית לניגון סאונד
+        function playSound(id, volume = 1) {
+            const audio = document.getElementById(id);
+            if (!audio) return;
+            audio.pause();
+            audio.currentTime = 0;
+            audio.volume = volume;
+            audio.play();
+        }
     </script>
 </body>
 

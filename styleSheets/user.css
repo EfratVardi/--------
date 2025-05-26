@@ -17,7 +17,7 @@ html {
 .background {
     width: 100vw;
     height: 100vh;
-    background: url('../resources/background.jpg') no-repeat center center;
+    background: url('../resources/pictures/background.jpg') no-repeat center center;
     background-size: cover;
     position: fixed;
     top: 0;
@@ -436,4 +436,91 @@ html,
 button,
 .cell {
     font-family: 'Varela Round', Arial, sans-serif !important;
+}
+
+.action-popup {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.35);
+    align-items: center;
+    justify-content: center;
+}
+
+.action-popup-content {
+    background: #fff;
+    border-radius: 36px;
+    box-shadow: 0 8px 48px #0005;
+    min-width: 70vw;
+    min-height: 60vh;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+#action-popup-img img,
+#action-popup-img video {
+    max-width: 180px;
+    max-height: 180px;
+    margin-bottom: 24px;
+}
+
+.popup-btn {
+    font-size: 1.3rem;
+    padding: 16px 32px;
+    border-radius: 16px;
+    border: none;
+    background: #fbc02d;
+    color: #222;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.popup-btn:hover {
+    background: #ffe082;
+}
+
+#task-popup-timer {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset:0;
+    background: #fff;
+    z-index: 10;
+    border-radius: 36px;
+}
+
+#task-popup-timer video {
+    width: 100%;
+    height: 100%;
+    max-width: 100vw;
+    max-height: 100vh;
+    object-fit: cover;
+    border-radius: 36px;
+    background: #000;
+}
+
+#task-popup-buttons {
+    margin-top: 32px;
+    display: flex;
+    gap: 40px; /* רווח גדול יותר בין הכפתורים */
+    justify-content: center;
+    width: 100%;
 }
