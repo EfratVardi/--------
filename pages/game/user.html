@@ -179,10 +179,10 @@
         const board = document.getElementById('game-board');
         // מצב לכל קבוצה
         const teamState = [
-            { tasksCount: 0, minesCount: 0, lastType: null, tasksUsed: [] },
-            { tasksCount: 0, minesCount: 0, lastType: null, tasksUsed: [] },
-            { tasksCount: 0, minesCount: 0, lastType: null, tasksUsed: [] },
-            { tasksCount: 0, minesCount: 0, lastType: null, tasksUsed: [] }
+            { tasksCount: 0, minesCount: 0, lastType: null},
+            { tasksCount: 0, minesCount: 0, lastType: null},
+            { tasksCount: 0, minesCount: 0, lastType: null},
+            { tasksCount: 0, minesCount: 0, lastType: null}
         ];
 
         for (let i = 1; i <= boardSize * boardSize; i++) {
@@ -291,8 +291,7 @@
             // בדיקת אפשרויות חוקיות
             if (
                 state.tasksCount < 3 &&
-                state.lastType !== 'task' &&
-                state.tasksUsed.length < window.tasks.length
+                state.lastType !== 'task'
             ) {
                 options.push('task');
             }
@@ -325,16 +324,8 @@
                     .map((task, idx) => ({ task, idx }))
                     .filter(({ idx }) => !globalTasksUsed.includes(idx));
 
-                // אם נגמרו כל המשימות, אפשר לבחור מתוך משימות שטרם בוצעו ע"י הקבוצה הנוכחית
-                if (availableTasks.length === 0) {
-                    availableTasks = window.tasks
-                        .map((task, idx) => ({ task, idx }))
-                        .filter(({ idx }) => !state.tasksUsed.includes(idx));
-                }
-
                 const randomTaskObj = availableTasks[Math.floor(Math.random() * availableTasks.length)];
                 globalTasksUsed.push(randomTaskObj.idx);
-                state.tasksUsed.push(randomTaskObj.idx);
                 state.tasksCount++;
                 state.lastType = 'task';
                 // הצגת פופאפ משימה
