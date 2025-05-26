@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../../styleSheets/user.css">
 </head>
 <style></style>
+
 <body>
     <div class="background">
         <button class="flash-btn">הגרל תור חדש</button>
@@ -35,10 +36,13 @@
             </div>
         </div>
         <div id="current-turn" class="current-turn"></div>
-        <div id="win-overlay" style="display:none; position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.95);align-items:center;justify-content:center;flex-direction:column;">
-            <canvas id="confetti-canvas" style="position:absolute;top:0;left:0;width:100vw;height:100vh;pointer-events:none;"></canvas>
+        <div id="win-overlay"
+            style="display:none; position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.95);align-items:center;justify-content:center;flex-direction:column;">
+            <canvas id="confetti-canvas"
+                style="position:absolute;top:0;left:0;width:100vw;height:100vh;pointer-events:none;"></canvas>
             <div id="win-text" style="font-size:3.5rem;font-weight:bold;margin-bottom:40px;text-align:center;"></div>
-            <button id="exit-btn" style="font-size:1.5rem;padding:18px 48px;border-radius:18px;background:#e53935;color:#fff;border:none;box-shadow:0 2px 12px #0003;cursor:pointer;">יציאה</button>
+            <button id="exit-btn"
+                style="font-size:1.5rem;padding:18px 48px;border-radius:18px;background:#e53935;color:#fff;border:none;box-shadow:0 2px 12px #0003;cursor:pointer;">יציאה</button>
         </div>
     </div>
     <script src="../../resources/tasks.js"></script>
@@ -227,15 +231,14 @@
                 options.push('task');
             }
             if (
-                state.minesCount < 1 &&
+                state.minesCount < 2 &&
                 state.lastType !== 'mine' &&
-                totalMines < 2 // לא יותר מ-2 מוקשים בלוח
+                totalMines < 4 // לא יותר מ-4 מוקשים בלוח
             ) {
                 options.push('mine');
             }
-            if (state.lastType !== 'color') {
-                options.push('color');
-            }
+
+            options.push('color');
 
             // נרמל הסתברויות רק לאפשרויות החוקיות
             let total = options.reduce((sum, opt) => sum + probabilities[opt], 0);
@@ -385,7 +388,7 @@
 
             // כפתור יציאה
             document.getElementById('exit-btn').onclick = function () {
-               expose.appClose()
+                expose.appClose()
             };
         }
 
@@ -415,7 +418,7 @@
                     ctx.translate(p.x, p.y);
                     ctx.rotate(p.angle);
                     ctx.fillStyle = p.color;
-                    ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
                     ctx.restore();
                     p.y += p.speed;
                     p.angle += p.spin;
@@ -430,9 +433,9 @@
         }
 
         const probabilities = {
-            task: 0.45,
+            task: 0.60,
             mine: 0.10,
-            color: 0.45
+            color: 0.30
         };
     </script>
 </body>
