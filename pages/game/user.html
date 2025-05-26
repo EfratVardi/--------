@@ -6,7 +6,45 @@
     <title>מרגיש לי</title>
     <link rel="stylesheet" href="../../styleSheets/user.css">
 </head>
-<style></style>
+<style>
+    .action-popup {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.35);
+        align-items: center;
+        justify-content: center;
+    }
+
+    .action-popup-content {
+        background: #fff;
+        border-radius: 36px;
+        box-shadow: 0 8px 48px #0005;
+        min-width: 70vw;
+        min-height: 60vh;
+        max-width: 90vw;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 64px 32px 48px 32px;
+        font-size: 2.5rem;
+        text-align: center;
+        position: relative;
+    }
+
+    #action-popup-img img,
+    #action-popup-img video {
+        max-width: 180px;
+        max-height: 180px;
+        margin-bottom: 24px;
+    }
+</style>
 
 <body>
     <div class="background">
@@ -43,6 +81,13 @@
             <div id="win-text" style="font-size:3.5rem;font-weight:bold;margin-bottom:40px;text-align:center;"></div>
             <button id="exit-btn"
                 style="font-size:1.5rem;padding:18px 48px;border-radius:18px;background:#e53935;color:#fff;border:none;box-shadow:0 2px 12px #0003;cursor:pointer;">יציאה</button>
+        </div>
+        <div id="action-popup" class="action-popup" style="display:none;">
+            <div class="action-popup-content">
+                <div id="action-popup-img"></div>
+                <div id="action-popup-text"></div>
+                <button id="action-popup-close">אישור</button>
+            </div>
         </div>
     </div>
     <script src="../../resources/tasks.js"></script>
@@ -215,7 +260,28 @@
 
             board.appendChild(cell);
         }
+        
+        function showActionPopup(text, html, onClose, autoClose = false) {
+            const popup = document.getElementById('action-popup');
+            document.getElementById('action-popup-text').innerHTML = text;
+            document.getElementById('action-popup-img').innerHTML = html;
+            popup.style.display = 'flex';
 
+            const closeBtn = document.getElementById('action-popup-close');
+            if (autoClose) {
+                closeBtn.style.display = 'none';
+                setTimeout(() => {
+                    popup.style.display = 'none';
+                    if (onClose) onClose();
+                }, 3000);
+            } else {
+                closeBtn.style.display = '';
+                closeBtn.onclick = function () {
+                    popup.style.display = 'none';
+                    if (onClose) onClose();
+                };
+            }
+        }
         // פונקציה שמבצעת את ההגרלה אחרי הפיצוץ
         function handleCellReveal(cell) {
             const teamIdx = lastTeamIdx;
@@ -299,32 +365,43 @@
                 state.minesCount++;
                 totalMines++; // הוסף שורה זו
                 state.lastType = 'mine';
-                // הסר את התמונה אם קיימת
                 const img = cell.querySelector('img');
                 if (img) img.remove();
-                // הצגת תמונת מוקש
-                cell.style.background = 'url("../../resources/mine.png") center center / cover no-repeat #fff';
+                showActionPopup(
+                    "אוי, נתקלתן במוקש...",
+                    `<img src="../../resources/mine.png" alt="מוקש">`,
+                    function () {
+                        cell.style.background = 'url("../../resources/mine.png") center center / cover no-repeat #fff';
+                    },
+                    true // <-- פופאפ ייסגר אוטומטית
+                );
             } else {
                 state.lastType = 'color';
-                // הסר את התמונה אם קיימת
                 const img = cell.querySelector('img');
                 if (img) img.remove();
-                // צובעים מיד בצבע הקבוצה
-                cell.style.background = teams[teamIdx].color;
-                cell.classList.add('owned');
-                cell.style.setProperty('--team-color', teams[teamIdx].color);
-                cell.dataset.owned = "1";
-                cell.dataset.owner = teamIdx; // הוסף שורה זו
-                const row = Number(cell.dataset.row);
-                const col = Number(cell.dataset.col);
-                const winCells = checkWin(row, col, teamIdx);
-                if (winCells) {
-                    winCells.forEach(cell => cell.classList.add('win-seq'));
-                    setTimeout(() => {
-                        winCells.forEach(cell => cell.classList.remove('win-seq'));
-                        showWin(teams[teamIdx].name, teams[teamIdx].color);
-                    }, 3000);
-                }
+                showActionPopup(
+                    "יששש, זכיתןןן!",
+                    `<img src="../../resources/mine.png" alt="זכיה">`,
+                    function () {
+                        cell.style.background = teams[teamIdx].color;
+                        cell.classList.add('owned');
+                        cell.style.setProperty('--team-color', teams[teamIdx].color);
+                        cell.dataset.owned = "1";
+                        cell.dataset.owner = teamIdx;
+                        // בדיקת ניצחון
+                        const row = Number(cell.dataset.row);
+                        const col = Number(cell.dataset.col);
+                        const winCells = checkWin(row, col, teamIdx);
+                        if (winCells) {
+                            winCells.forEach(cell => cell.classList.add('win-seq'));
+                            setTimeout(() => {
+                                winCells.forEach(cell => cell.classList.remove('win-seq'));
+                                showWin(teams[teamIdx].name, teams[teamIdx].color);
+                            }, 3000);
+                        }
+                    },
+                    true // <-- פופאפ ייסגר אוטומטית
+                );
             }
         }
         // סגירת הפופאפ
