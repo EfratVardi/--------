@@ -19,14 +19,13 @@
             <div class="action-popup-content">
                 <div id="task-popup-text"></div>
                 <div id="task-popup-timer" style="display:none; margin: 24px 0;">
-                    <video id="timer-video" width="300" height="300" controls
-                        style="background:#000; border-radius:24px;">
+                    <video id="timer-video" width="300" height="300" style="background:#000; border-radius:24px;">
                         <source src="../../resources/videos/timer.mp4" type="video/mp4">
                     </video>
                 </div>
                 <div id="task-popup-buttons" style="margin-top:32px; display:flex; gap:24px;">
                     <button id="start-timer-btn" class="popup-btn">התחל טיימר</button>
-                    <button id="task-done-btn" class="popup-btn">הושלמה המשימה</button>
+                    <button id="task-done-btn" class="popup-btn">המשימה הושלמה</button>
                     <button id="task-fail-btn" class="popup-btn">המשימה לא הושלמה</button>
                 </div>
             </div>
@@ -344,6 +343,7 @@
                     const col = Number(cell.dataset.col);
                     const winCells = checkWin(row, col, teamIdx);
                     if (winCells) {
+                        playSound('sound-win');
                         winCells.forEach(cell => cell.classList.add('win-seq'));
                         setTimeout(() => {
                             winCells.forEach(cell => cell.classList.remove('win-seq'));
