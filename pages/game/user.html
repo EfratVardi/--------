@@ -138,7 +138,7 @@
             }, 50);
 
             setTimeout(() => {
-                diceLabel.innerHTML = `התור של קבוצת:  <span style="color:${teams[teamIdx].color};">${teams[teamIdx].name}</span>`;
+                diceLabel.innerHTML = `התור של קבוצת  <span style="color:${teams[teamIdx].color};">${teams[teamIdx].name}</span>`;
                 isRolling = false;
                 canExplode = true; // אפשר לפוצץ ריבוע בתור הזה
 
@@ -147,7 +147,7 @@
                     dicePopup.style.display = 'none';
                     document.getElementById('current-turn').style.visibility = 'visible';
                     document.getElementById('current-turn').innerHTML =
-                        `התור של קבוצת: <span style="color:${teams[teamIdx].color};">${teams[teamIdx].name}</span>`;
+                        `התור של קבוצת <span style="color:${teams[teamIdx].color};">${teams[teamIdx].name}</span>`;
                     document.querySelector('.flash-btn').disabled = false; // פותח את הכפתור
                 }, 3000);
 
