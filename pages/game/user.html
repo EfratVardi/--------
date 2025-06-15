@@ -12,7 +12,10 @@
 
 <body>
     <div class="background">
-        <button class="flash-btn">הגרל תור חדש</button>
+        <div class="bottom-buttons-bar">
+            <button id="instructions-btn" class="flash-btn">הוראות</button>
+            <button id="draw-btn" class="flash-btn">הגרלת תור חדש</button>
+        </div>
         <div id="game-board" class="game-board"></div>
         <!-- פופאפ למשימה -->
         <div id="task-popup" class="action-popup" style="display:none;">
@@ -22,6 +25,7 @@
                     <video id="timer-video" width="300" height="300" style="background:#000; border-radius:24px;">
                         <source src="../../resources/videos/timer.mp4" type="video/mp4">
                     </video>
+                    <button id="close-timer-btn" class="popup-btn" style="margin-top: 16px; background: #63209f; color: #fff;">סגור טיימר</button>
                 </div>
                 <div id="task-popup-buttons" style="margin-top:32px; display:flex; gap:24px;">
                     <button id="start-timer-btn" class="popup-btn">התחילי טיימר</button>
@@ -72,7 +76,7 @@
     <script src="../../resources/tasks.js"></script>
     <script>
         const teams = [
-            { name: "אדום", color: "#e53935", gif: "red.gif" },
+            { name: "אדום", color: "#bb1a34", gif: "red.gif" },
             { name: "צהוב", color: "#fbc02d", gif: "yellow.gif" },
             { name: "ירוק", color: "#43a047", gif: "green.gif" },
             { name: "כחול", color: "#1e88e5", gif: "blue.gif" }
@@ -105,10 +109,10 @@
         }
 
         // הגרלת תור חדש
-        document.querySelector('.flash-btn').onclick = function () {
+        document.getElementById('draw-btn').onclick = function () {
             if (isRolling) return;
             isRolling = true;
-            document.querySelector('.flash-btn').disabled = true; // נעל את הכפתור
+            document.getElementById('draw-btn').disabled = true; // נעל את הכפתור
 
             if (roundOrder.length === 0) {
                 newRound();
@@ -148,7 +152,7 @@
                     document.getElementById('current-turn').style.visibility = 'visible';
                     document.getElementById('current-turn').innerHTML =
                         `התור של קבוצת <span style="color:${teams[teamIdx].color};">${teams[teamIdx].name}</span>`;
-                    document.querySelector('.flash-btn').disabled = false; // פותח את הכפתור
+                    document.getElementById('draw-btn').disabled = false; // פותח את הכפתור
                 }, 3000);
 
             }, 2100);
@@ -246,11 +250,19 @@
             board.appendChild(cell);
         }
 
-        function showActionPopup(text, html, onClose, autoClose = false) {
+        function showActionPopup(text, html, onClose, autoClose = false, teamColor = null) {
             const popup = document.getElementById('action-popup');
+            const popupContent = popup.querySelector('.action-popup-content');
             document.getElementById('action-popup-text').innerHTML = text;
             document.getElementById('action-popup-img').innerHTML = html;
             popup.style.display = 'flex';
+
+            // צבע רקע לפי קבוצה
+            if (teamColor) {
+                popupContent.style.background = teamColor;
+            } else {
+                popupContent.style.background = "#ffffff";
+            }
 
             const closeBtn = document.getElementById('action-popup-close');
             if (autoClose) {
@@ -264,6 +276,8 @@
                 closeBtn.onclick = function () {
                     popup.style.display = 'none';
                     if (onClose) onClose();
+                    // החזרת רקע לברירת מחדל
+                    popupContent.style.background = "#fff";
                 };
             }
         }
@@ -329,16 +343,33 @@
                     };
                 };
 
+                // כפתור סגירת טיימר
+                document.getElementById('close-timer-btn').onclick = function () {
+                    document.getElementById('task-popup-timer').style.display = 'none';
+                };
+
                 // כפתור הושלמה המשימה
                 document.getElementById('task-done-btn').onclick = function () {
                     document.getElementById('task-popup').style.display = 'none';
                     const img = cell.querySelector('img');
                     if (img) img.remove();
-                    cell.style.background = teams[teamIdx].color;
+                    cell.style.background = "#fff";
+                    // הוספת הגיף של הקבוצה
+                    const gif = document.createElement('img');
+                    gif.src = `../../resources/gifs/${teams[teamIdx].gif}`;
+                    gif.alt = "זכיה";
+                    gif.style.width = "100%";
+                    gif.style.height = "100%";
+                    gif.style.objectFit = "cover";
+                    cell.appendChild(gif);
+
+                    // עדכון מצב התא (כמו בצ'ופר)
                     cell.classList.add('owned');
                     cell.style.setProperty('--team-color', teams[teamIdx].color);
                     cell.dataset.owned = "1";
                     cell.dataset.owner = teamIdx;
+
+                    // בדיקת ניצחון
                     const row = Number(cell.dataset.row);
                     const col = Number(cell.dataset.col);
                     const winCells = checkWin(row, col, teamIdx);
@@ -371,7 +402,8 @@
                     function () {
                         cell.style.background = 'url("../../resources/gifs/mine.gif") center center / cover no-repeat #fff';
                     },
-                    true // <-- פופאפ ייסגר אוטומטית
+                    true ,
+                    '#000000'// <-- פופאפ ייסגר אוטומטית
                 );
             } else {
                 state.lastType = 'color';
@@ -414,11 +446,12 @@
                         }
                     },
                     true // פופאפ ייסגר אוטומטית
+                    ,teams[teamIdx].color // צבע הקבוצה להצגת הפופאפ
                 );
             }
         }
 
-        document.querySelector('.flash-btn').addEventListener('keydown', function (e) {
+        document.getElementById('draw-btn').addEventListener('keydown', function (e) {
             if (
                 document.getElementById('task-popup').style.display === 'flex' ||
                 document.getElementById('dice-popup').style.display === 'flex'
@@ -462,7 +495,7 @@
         function showWin(teamName, teamColor) {
             // חסימת כל הלחיצות
             canExplode = false;
-            document.querySelector('.flash-btn').disabled = true;
+            document.getElementById('draw-btn').disabled = true;
 
             // הצגת שכבת זכייה
             const overlay = document.getElementById('win-overlay');
@@ -538,6 +571,24 @@
             audio.volume = volume;
             audio.play();
         }
+
+        // פופאפ הוראות
+        document.getElementById('instructions-btn').onclick = function () {
+            fetch('../../resources/instructions.txt')
+                .then(response => response.text())
+                .then(text => {
+                    showActionPopup(
+                        text.replace(/\n/g, '<br>'),
+                        '',
+                        null,
+                        false,
+                        '#b056ff'
+                    );
+                });
+        };
+        document.getElementById('close-instructions-btn').onclick = function () {
+            document.getElementById('instructions-popup').style.display = 'none';
+        };
     </script>
 </body>
 
