@@ -63,7 +63,7 @@
             <div class="action-popup-content">
                 <div id="action-popup-img"></div>
                 <div id="action-popup-text"></div>
-                <button id="action-popup-close">אישור</button>
+                <button id="action-popup-close" class="popup-btn" style="background: #63209f; color: #fff; margin-top: 24px;">סגור</button>
             </div>
         </div>
     </div>
@@ -250,10 +250,11 @@
             board.appendChild(cell);
         }
 
-        function showActionPopup(text, html, onClose, autoClose = false, teamColor = null) {
+        function showActionPopup(text, html, onClose, autoClose = false, teamColor = null, fontSize = null) {
             const popup = document.getElementById('action-popup');
             const popupContent = popup.querySelector('.action-popup-content');
-            document.getElementById('action-popup-text').innerHTML = text;
+            const textDiv = document.getElementById('action-popup-text');
+            textDiv.innerHTML = text;
             document.getElementById('action-popup-img').innerHTML = html;
             popup.style.display = 'flex';
 
@@ -262,6 +263,13 @@
                 popupContent.style.background = teamColor;
             } else {
                 popupContent.style.background = "#ffffff";
+            }
+
+            // שינוי גודל פונט אם נשלח
+            if (fontSize) {
+                textDiv.style.fontSize = fontSize;
+            } else {
+                textDiv.style.fontSize = '';
             }
 
             const closeBtn = document.getElementById('action-popup-close');
@@ -278,6 +286,7 @@
                     if (onClose) onClose();
                     // החזרת רקע לברירת מחדל
                     popupContent.style.background = "#fff";
+                    textDiv.style.fontSize = '';
                 };
             }
         }
@@ -582,7 +591,8 @@
                         '',
                         null,
                         false,
-                        '#b056ff'
+                        '#d4a4ff',
+                        '2.5rem'
                     );
                 });
         };

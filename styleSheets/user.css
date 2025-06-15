@@ -89,20 +89,18 @@ html {
     left: 40px;
     padding: 18px 32px;
     font-size: 1.3rem;
-    background: #ffe600;
-    color: #222;
+    background: #d4a4ff;
+    color: #fff;
     border: none;
     border-radius: 16px;
     box-shadow:
-        0 0 10px 2px #ffe600,
+        0 0 10px 2px #d4a4ff,
         0 2px 12px #0002;
     cursor: pointer;
     font-weight: bold;
     animation: neon-flash 2.2s infinite alternate;
     z-index: 10;
-    text-shadow:
-        0 0 4px #fff700,
-        0 0 8px #ffe600;
+    text-shadow: none;
     transition: box-shadow 0.3s, background 0.3s;
     display: inline-block;
     width: auto;
@@ -110,25 +108,31 @@ html {
     margin: 0;
 }
 
+.flash-btn:hover, .flash-btn:focus {
+    background: #63209f;
+    color: #fff;
+    box-shadow: 0 0 16px 4px #d4a4ff, 0 2px 16px #63209f;
+}
+
 @keyframes neon-flash {
     0% {
         box-shadow:
-            0 0 10px 2px #ffe600,
-            0 2px 12px #0002;
-        background: #ffe600;
+            0 0 10px 2px #d4a4ff,
+            0 2px 12px #63209f;
+        background: #d4a4ff;
         text-shadow:
-            0 0 4px #fff700,
-            0 0 8px #ffe600;
+            0 0 4px #e0b3ff,
+            0 0 8px #d4a4ff;
     }
 
     100% {
         box-shadow:
-            0 0 18px 6px #ffe600,
-            0 2px 18px #ffea00;
-        background: #ffe600;
+            0 0 18px 6px #d4a4ff,
+            0 2px 18px #63209f;
+        background: #63209f;
         text-shadow:
-            0 0 8px #fff700,
-            0 0 16px #ffe600;
+            0 0 8px #e0b3ff,
+            0 0 16px #d4a4ff;
     }
 }
 
@@ -136,7 +140,7 @@ html {
 .dice-popup {
     display: none;
     position: fixed;
-    z-index: 200;
+    z-index: 2000;
     left: 40px;
     top: 50%;
     bottom: unset;
@@ -173,10 +177,10 @@ html {
     background: #fff;
     border-radius: 36px;
     box-shadow: 0 8px 48px #0005;
-    width: 90vw;
-    height: 80vh;
+    width: 94vw;
+    height: 88vh;
     max-width: 98vw;
-    max-height: 98vh;
+    max-height: 96vh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -572,7 +576,7 @@ button,
 }
 
 #task-popup .action-popup-content {
-    background: #b056ff !important;
+    background: #d4a4ff !important;
     padding: 40px 80px !important; /* רווח אנכי קטן יותר, רווח אופקי גדול יותר */
     margin-right: 32px;
     margin-left: 32px;
@@ -592,7 +596,6 @@ button,
     left: 20px;
     bottom: 20px;
     display: flex;
-    gap: 16px; /* רווח בין הכפתורים */
     z-index: 1000;
 }
 
@@ -601,21 +604,8 @@ button,
     margin: 0;
 }
 
-#instructions-popup {
-    display: none;
-    position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    background: #fff;
-    border: 4px solid #63209f;
-    border-radius: 24px;
-    box-shadow: 0 8px 32px rgba(99,32,159,0.25);
-    padding: 32px 40px;
-    z-index: 2000;
-    min-width: 320px;
-    max-width: 90vw;
-    text-align: center;
+.bottom-buttons-bar .flash-btn:first-child {
+    margin-left: 32px;
 }
 
 #instructions-popup .close-btn {
@@ -632,57 +622,5 @@ button,
     cursor: pointer;
 }
 
-#instructions-popup.action-popup {
-    display: none;
-    position: fixed;
-    z-index: 200;
-    left: 40px;
-    top: 50%;
-    background: none;
-    align-items: flex-start;
-    justify-content: flex-start;
-    width: auto;
-    height: auto;
-    transform: translateY(-50%);
-}
 
-#instructions-popup .action-popup-content {
-    border-radius: 36px;
-    box-shadow: 0 8px 48px #0005;
-    width: 94vw;
-    height: 88vh;
-    max-width: 98vw;
-    max-height: 96vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.2rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    padding: 0;
-    background: #fff;
-}
 
-#instructions-content {
-    white-space: pre-line;
-    text-align: right;
-    font-size: 1.3rem;
-    color: #333;
-    direction: rtl;
-    margin: 32px;
-}
-
-#close-instructions-btn {
-    margin-top: 24px;
-    background: #63209f;
-    color: #fff;
-    border: none;
-    padding: 12px 32px;
-    border-radius: 24px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    box-shadow: 0 2px 8px #0002;
-    opacity: 0.95;
-}
