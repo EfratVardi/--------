@@ -4,13 +4,50 @@
 <head>
     <meta charset="utf-8" />
     <title>צבירת נקודות</title>
+    <link rel="stylesheet" href="../../styleSheets/main-pages.css">
+    <script src="../../js/shared.js"></script>
 </head>
 
 <body onload="onLoad()">
-    <script src="../../js/shared.js"></script>
+    <div class="login-box" id="login-box">
+        <div id="error-msg" class="error" style="display:none;"></div>
+        <input type="password" id="password-input" placeholder="הכנס סיסמה" autocomplete="off" />
+        <button onclick="checkPassword()">כניסה</button>
+    </div>
     <script>
+        const PASSWORD = '211429519';
+        const STORAGE_KEY = 'game_first_run_date';
+        const EXPIRE_DAYS = 2;
+
         function onLoad() {
-            login("../game/user")
+            // בדוק אם יש תאריך הפעלה
+            const firstRun = localStorage.getItem(STORAGE_KEY);
+            if (firstRun) {
+                const firstDate = new Date(firstRun);
+                const now = new Date();
+                const diff = (now - firstDate) / (1000 * 60 * 60 * 24);
+                if (diff >= EXPIRE_DAYS) {
+                    login("expired");
+                    return;
+                } else {
+                    login("../game/user");
+                }
+            }
+        }
+
+        function checkPassword() {
+            const input = document.getElementById('password-input').value;
+            const errorMsg = document.getElementById('error-msg');
+            if (input === PASSWORD) {
+                // שמור תאריך הפעלה
+                if (!localStorage.getItem(STORAGE_KEY)) {
+                    localStorage.setItem(STORAGE_KEY, new Date().toISOString());
+                }
+                login("../game/user");
+            } else {
+                errorMsg.innerText = 'סיסמה שגויה';
+                errorMsg.style.display = 'block';
+            }
         }
     </script>
 
