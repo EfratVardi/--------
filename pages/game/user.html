@@ -317,7 +317,7 @@
             //     options.push('mine');
             // }
 
-            options.push('task');
+            options.push('color');
 
             // נרמל הסתברויות רק לאפשרויות החוקיות
             let total = options.reduce((sum, opt) => sum + probabilities[opt], 0);
@@ -377,18 +377,27 @@
                     gif.style.height = "100%";
                     gif.style.objectFit = "cover";
                     cell.appendChild(gif);
-
                     // עדכון מצב התא (כמו בצ'ופר)
                     cell.classList.add('owned');
                     cell.style.setProperty('--team-color', teams[teamIdx].color);
                     cell.dataset.owned = teamIdx; // שמור את האינדקס של הקבוצה
                     cell.dataset.owner = teamIdx;
-
                     // עדכון מצב קבוצה
                     teamState[teamIdx].tasksCount++;
                     teamState[teamIdx].lastType = 'task';
-
                     saveOnChange(); // שמור את כל השינויים!
+                    // בדיקת ניצחון אחרי סגירת הפופאפ
+                    const row = Number(cell.dataset.row);
+                    const col = Number(cell.dataset.col);
+                    const winCells = checkWin(row, col, teamIdx);
+                    if (winCells) {
+                        playSound('sound-win');
+                        winCells.forEach(cell => cell.classList.add('win-seq'));
+                        setTimeout(() => {
+                            winCells.forEach(cell => cell.classList.remove('win-seq'));
+                            showWin(teams[teamIdx].name, teams[teamIdx].color);
+                        }, 1800);
+                    }
                 };
 
                 // כפתור המשימה לא הושלמה
@@ -414,6 +423,18 @@
                     function () {
                         cell.style.background = 'url("../../resources/gifs/mine.gif") center center / cover no-repeat #fff';
                         saveOnChange(); // שמור את המצב לאחר מוקש
+                        // בדיקת ניצחון אחרי סגירת הפופאפ
+                        const row = Number(cell.dataset.row);
+                        const col = Number(cell.dataset.col);
+                        const winCells = checkWin(row, col, teamIdx);
+                        if (winCells) {
+                            playSound('sound-win');
+                            winCells.forEach(cell => cell.classList.add('win-seq'));
+                            setTimeout(() => {
+                                winCells.forEach(cell => cell.classList.remove('win-seq'));
+                                showWin(teams[teamIdx].name, teams[teamIdx].color);
+                            }, 1800);
+                        }
                     },
                     true,
                     '#000000'
@@ -444,20 +465,22 @@
                         cell.dataset.owned = teamIdx; // שמור את האינדקס של הקבוצה
                         cell.dataset.owner = teamIdx;
                         saveOnChange(); // שמור את המצב לאחר קבלת צ'ופר
+                        // בדיקת ניצחון אחרי סגירת הפופאפ
+                        const row = Number(cell.dataset.row);
+                        const col = Number(cell.dataset.col);
+                        const winCells = checkWin(row, col, teamIdx);
+                        if (winCells) {
+                            playSound('sound-win');
+                            winCells.forEach(cell => cell.classList.add('win-seq'));
+                            setTimeout(() => {
+                                winCells.forEach(cell => cell.classList.remove('win-seq'));
+                                showWin(teams[teamIdx].name, teams[teamIdx].color);
+                            }, 1800);
+                        }
                     },
                     true,
                     teams[teamIdx].color
                 );
-            }
-            // בדיקת ניצחון
-            const row = Number(cell.dataset.row);
-            const col = Number(cell.dataset.col);
-            const winCells = checkWin(row, col, teamIdx);
-            if (winCells) {
-                setTimeout(() => {
-                    playSound('sound-win');
-                    showWin(teams[teamIdx].name, teams[teamIdx].color);
-                }, 3500);
             }
         }
 
@@ -483,7 +506,7 @@
                     } else break;
                 }
             }
-            if (cells.length >= 3) return cells;
+            if (cells.length >= 2) return cells;
 
             // אנכי
             cells = [document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`)];
@@ -497,7 +520,7 @@
                     } else break;
                 }
             }
-            if (cells.length >= 3) return cells;
+            if (cells.length >= 2) return cells;
 
             return null;
         }
@@ -583,9 +606,9 @@
         }
 
         const probabilities = {
-            task: 1,
-            mine: 0,
-            color: 0
+            task: 0.45,
+            mine: 0.25,
+            color: 0.40
         };
 
         // הפעלת מוזיקת רקע בלולאה עם ווליום נמוך
@@ -716,9 +739,9 @@
                             for (let col = 0; col < 5; col++) {
                                 const cell = document.querySelector(`.cell[data-row='${row}'][data-col='${col}']`);
                                 if (cell && cell.dataset.owner == teamIdx) {
+                                    playSound('sound-win');
                                     const winCells = checkWin(row, col, teamIdx);
                                     if (winCells) {
-                                        playSound('sound-win');
                                         showWin(teams[teamIdx].name, teams[teamIdx].color);
                                         return;
                                     }
