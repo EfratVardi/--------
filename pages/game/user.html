@@ -25,7 +25,8 @@
                     <video id="timer-video" width="300" height="300" style="background:#000; border-radius:24px;">
                         <source src="../../resources/videos/timer.mp4" type="video/mp4">
                     </video>
-                    <button id="close-timer-btn" class="popup-btn" style="margin-top: 16px; background: #63209f; color: #fff;">סגור טיימר</button>
+                    <button id="close-timer-btn" class="popup-btn"
+                        style="margin-top: 16px; background: #63209f; color: #fff;">סגור טיימר</button>
                 </div>
                 <div id="task-popup-buttons" style="margin-top:32px; display:flex; gap:24px;">
                     <button id="start-timer-btn" class="popup-btn">התחילי טיימר</button>
@@ -56,14 +57,13 @@
             <canvas id="confetti-canvas"
                 style="position:absolute;top:0;left:0;width:100vw;height:100vh;pointer-events:none;"></canvas>
             <div id="win-text" style="font-size:3.5rem;font-weight:bold;margin-bottom:40px;text-align:center;"></div>
-            <button id="exit-btn"
-                style="font-size:1.5rem;padding:18px 48px;border-radius:18px;background:#e53935;color:#fff;border:none;box-shadow:0 2px 12px #0003;cursor:pointer;">יציאה</button>
         </div>
         <div id="action-popup" class="action-popup" style="display:none;">
             <div class="action-popup-content">
                 <div id="action-popup-img"></div>
                 <div id="action-popup-text"></div>
-                <button id="action-popup-close" class="popup-btn" style="background: #63209f; color: #fff; margin-top: 24px;">סגור</button>
+                <button id="action-popup-close" class="popup-btn"
+                    style="background: #63209f; color: #fff; margin-top: 24px;">סגור</button>
             </div>
         </div>
     </div>
@@ -75,6 +75,8 @@
     <audio id="sound-win" src="../../resources/music/win.mp3"></audio>
     <script src="../../resources/tasks.js"></script>
     <script>
+        const GAME_STATE_KEY = 'game_state_v1';
+
         const teams = [
             { name: "אדום", color: "#bb1a34", gif: "red.gif" },
             { name: "צהוב", color: "#fbc02d", gif: "yellow.gif" },
@@ -119,6 +121,7 @@
             }
             const teamIdx = roundOrder.shift();
             lastTeamIdx = teamIdx;
+            saveOnChange(); // שמור מצב אחרי שינוי תור
 
             const dicePopup = document.getElementById('dice-popup');
             const diceLabel = document.getElementById('dice-label');
@@ -142,7 +145,7 @@
             }, 50);
 
             setTimeout(() => {
-                diceLabel.innerHTML = `התור של קבוצת  <span style="color:${teams[teamIdx].color};">${teams[teamIdx].name}</span>`;
+                diceLabel.innerHTML = `התור של קבוצת  <span>${teams[teamIdx].name}</span>`;
                 isRolling = false;
                 canExplode = true; // אפשר לפוצץ ריבוע בתור הזה
 
@@ -151,7 +154,7 @@
                     dicePopup.style.display = 'none';
                     document.getElementById('current-turn').style.visibility = 'visible';
                     document.getElementById('current-turn').innerHTML =
-                        `התור של קבוצת <span style="color:${teams[teamIdx].color};">${teams[teamIdx].name}</span>`;
+                        `התור של קבוצת <span>${teams[teamIdx].name}</span>`;
                     document.getElementById('draw-btn').disabled = false; // פותח את הכפתור
                 }, 3000);
 
@@ -171,6 +174,7 @@
             { tasksCount: 0, minesCount: 0, lastType: null }
         ];
 
+        // בניית הלוח
         for (let i = 1; i <= boardSize * boardSize; i++) {
             const cell = document.createElement('div');
             cell.className = 'cell';
@@ -249,6 +253,8 @@
 
             board.appendChild(cell);
         }
+        // --- כאן נטען את מצב המשחק רק אחרי שכל התאים נבנו ---
+        loadGameState();
 
         function showActionPopup(text, html, onClose, autoClose = false, teamColor = null, fontSize = null) {
             const popup = document.getElementById('action-popup');
@@ -297,21 +303,21 @@
             let options = [];
 
             // בדיקת אפשרויות חוקיות
-            if (
-                state.tasksCount < 3 &&
-                state.lastType !== 'task'
-            ) {
-                options.push('task');
-            }
-            if (
-                state.minesCount < 2 &&
-                state.lastType !== 'mine' &&
-                totalMines < 4 // לא יותר מ-4 מוקשים בלוח
-            ) {
-                options.push('mine');
-            }
+            // if (
+            //     state.tasksCount < 3 &&
+            //     state.lastType !== 'task'
+            // ) {
+            //     options.push('task');
+            // }
+            // if (
+            //     state.minesCount < 2 &&
+            //     state.lastType !== 'mine' &&
+            //     totalMines < 4 // לא יותר מ-4 מוקשים בלוח
+            // ) {
+            //     options.push('mine');
+            // }
 
-            options.push('color');
+            options.push('task');
 
             // נרמל הסתברויות רק לאפשרויות החוקיות
             let total = options.reduce((sum, opt) => sum + probabilities[opt], 0);
@@ -375,45 +381,44 @@
                     // עדכון מצב התא (כמו בצ'ופר)
                     cell.classList.add('owned');
                     cell.style.setProperty('--team-color', teams[teamIdx].color);
-                    cell.dataset.owned = "1";
+                    cell.dataset.owned = teamIdx; // שמור את האינדקס של הקבוצה
                     cell.dataset.owner = teamIdx;
 
-                    // בדיקת ניצחון
-                    const row = Number(cell.dataset.row);
-                    const col = Number(cell.dataset.col);
-                    const winCells = checkWin(row, col, teamIdx);
-                    if (winCells) {
-                        playSound('sound-win');
-                        winCells.forEach(cell => cell.classList.add('win-seq'));
-                        setTimeout(() => {
-                            winCells.forEach(cell => cell.classList.remove('win-seq'));
-                            showWin(teams[teamIdx].name, teams[teamIdx].color);
-                        }, 3000);
-                    }
+                    // עדכון מצב קבוצה
+                    teamState[teamIdx].tasksCount++;
+                    teamState[teamIdx].lastType = 'task';
+
+                    saveOnChange(); // שמור את כל השינויים!
                 };
 
                 // כפתור המשימה לא הושלמה
                 document.getElementById('task-fail-btn').onclick = function () {
                     document.getElementById('task-popup').style.display = 'none';
                     // לא צובעים את התא, לא עושים כלום
+                    saveOnChange(); // שמור את המצב גם אם לא הושלמה משימה
                 };
 
             } else if (chosenType === 'mine') {
                 state.minesCount++;
-                totalMines++; // הוסף שורה זו
+                totalMines++;
                 state.lastType = 'mine';
                 const img = cell.querySelector('img');
                 if (img) img.remove();
+                cell.classList.add('owned');
+                cell.dataset.owned = 'mine'; // שמור במפורש שזה מוקש
+                cell.style.background = 'url("../../resources/gifs/mine.gif") center center / cover no-repeat #fff';
                 playSound('sound-fail');
                 showActionPopup(
                     "אוי, עליתן על מוקש...",
                     `<img src="../../resources/gifs/mine.gif" alt="מוקש">`,
                     function () {
                         cell.style.background = 'url("../../resources/gifs/mine.gif") center center / cover no-repeat #fff';
+                        saveOnChange(); // שמור את המצב לאחר מוקש
                     },
-                    true ,
-                    '#000000'// <-- פופאפ ייסגר אוטומטית
+                    true,
+                    '#000000'
                 );
+                saveOnChange();
             } else {
                 state.lastType = 'color';
                 const img = cell.querySelector('img');
@@ -434,29 +439,25 @@
                         gif.style.height = "100%";
                         gif.style.objectFit = "cover";
                         cell.appendChild(gif);
-
-                        // *** הוסיפי את השורות הבאות ***
                         cell.classList.add('owned');
                         cell.style.setProperty('--team-color', teams[teamIdx].color);
-                        cell.dataset.owned = "1";
+                        cell.dataset.owned = teamIdx; // שמור את האינדקס של הקבוצה
                         cell.dataset.owner = teamIdx;
-
-                        // בדיקת ניצחון
-                        const row = Number(cell.dataset.row);
-                        const col = Number(cell.dataset.col);
-                        const winCells = checkWin(row, col, teamIdx);
-                        if (winCells) {
-                            playSound('sound-win');
-                            winCells.forEach(cell => cell.classList.add('win-seq'));
-                            setTimeout(() => {
-                                winCells.forEach(cell => cell.classList.remove('win-seq'));
-                                showWin(teams[teamIdx].name, teams[teamIdx].color);
-                            }, 3000);
-                        }
+                        saveOnChange(); // שמור את המצב לאחר קבלת צ'ופר
                     },
-                    true // פופאפ ייסגר אוטומטית
-                    ,teams[teamIdx].color // צבע הקבוצה להצגת הפופאפ
+                    true,
+                    teams[teamIdx].color
                 );
+            }
+            // בדיקת ניצחון
+            const row = Number(cell.dataset.row);
+            const col = Number(cell.dataset.col);
+            const winCells = checkWin(row, col, teamIdx);
+            if (winCells) {
+                setTimeout(() => {
+                    playSound('sound-win');
+                    showWin(teams[teamIdx].name, teams[teamIdx].color);
+                }, 3500);
             }
         }
 
@@ -509,15 +510,35 @@
             // הצגת שכבת זכייה
             const overlay = document.getElementById('win-overlay');
             overlay.style.display = 'flex';
-            document.getElementById('win-text').innerHTML = `כל הכבוד!<br>הקבוצה הזוכה:<br><span style="color:${teamColor};
-            font-size:8rem;">${teamName}</span>`;
+            document.getElementById('win-text').innerHTML = `כל הכבוד!<br>הקבוצה הזוכה:<br><span style="color:${teamColor}; font-size:8rem;">${teamName}</span>`;
 
             // קונפטי
             launchConfetti(teamColor);
 
-            // כפתור יציאה
-            document.getElementById('exit-btn').onclick = function () {
-                expose.appClose()
+            // הסרת כפתור יציאה אם קיים
+            const exitBtn = document.getElementById('exit-btn');
+            if (exitBtn) exitBtn.style.display = 'none';
+
+            // כפתור איפוס משחק
+            let resetBtn = document.getElementById('reset-btn');
+            if (!resetBtn) {
+                resetBtn = document.createElement('button');
+                resetBtn.id = 'reset-btn';
+                resetBtn.innerText = 'איפוס משחק';
+                resetBtn.style.fontSize = '1.5rem';
+                resetBtn.style.padding = '18px 48px';
+                resetBtn.style.borderRadius = '18px';
+                resetBtn.style.background = '#b056ff';
+                resetBtn.style.color = '#fff';
+                resetBtn.style.border = 'none';
+                resetBtn.style.boxShadow = '0 2px 12px #0003';
+                resetBtn.style.cursor = 'pointer';
+                resetBtn.style.marginTop = '24px';
+                overlay.appendChild(resetBtn);
+            }
+            resetBtn.onclick = function () {
+                localStorage.removeItem(GAME_STATE_KEY);
+                window.location.reload();
             };
         }
 
@@ -562,9 +583,9 @@
         }
 
         const probabilities = {
-            task: 0.50,
-            mine: 0.20,
-            color: 0.40
+            task: 1,
+            mine: 0,
+            color: 0
         };
 
         // הפעלת מוזיקת רקע בלולאה עם ווליום נמוך
@@ -597,6 +618,122 @@
                     );
                 });
         };
+
+        // --- שמירה וטעינה של מצב המשחק ---
+        function saveGameState() {
+            // טען את המצב האחרון (אם קיים) כדי לא לאפס תאים שלא שונו
+            let prevState = {};
+            try {
+                const prevStr = localStorage.getItem(GAME_STATE_KEY);
+                if (prevStr) prevState = JSON.parse(prevStr);
+            } catch (e) { }
+
+            // שמור את מצב התאים הקודם אם לא שונה
+            const prevCells = (prevState && prevState.boardCells) ? prevState.boardCells : [];
+            const boardCells = Array.from(document.querySelectorAll('.cell')).map(cell => {
+                const row = cell.dataset.row;
+                const col = cell.dataset.col;
+                // חפש אם יש תא קודם עם אותם row/col
+                const prev = prevCells.find(c => c.row === row && c.col === col) || {};
+                return {
+                    row,
+                    col,
+                    owned: cell.dataset.owned !== undefined ? cell.dataset.owned : prev.owned || null,
+                    owner: cell.dataset.owner !== undefined ? cell.dataset.owner : prev.owner || null,
+                    imgHidden: cell.querySelector('img') ? (cell.querySelector('img').style.display === 'none') : (prev.imgHidden || false)
+                };
+            });
+            const state = {
+                roundOrder,
+                lastTeamIdx,
+                isRolling,
+                canExplode,
+                totalMines,
+                globalTasksUsed,
+                teamState,
+                boardCells
+            };
+            localStorage.setItem(GAME_STATE_KEY, JSON.stringify(state));
+        }
+
+        function loadGameState() {
+            const stateStr = localStorage.getItem(GAME_STATE_KEY);
+            if (!stateStr) return;
+            try {
+                const state = JSON.parse(stateStr);
+                roundOrder = state.roundOrder || [];
+                lastTeamIdx = state.lastTeamIdx;
+                isRolling = state.isRolling;
+                canExplode = state.canExplode;
+                totalMines = state.totalMines;
+                globalTasksUsed = state.globalTasksUsed || [];
+                if (state.teamState) {
+                    for (let i = 0; i < teamState.length; i++) {
+                        Object.assign(teamState[i], state.teamState[i]);
+                    }
+                }
+                // שיחזור מצב הלוח
+                if (state.boardCells) {
+                    state.boardCells.forEach(cellState => {
+                        const selector = `.cell[data-row='${cellState.row}'][data-col='${cellState.col}']`;
+                        const cell = document.querySelector(selector);
+                        if (cell) {
+                            // שחזור בעלות
+                            if (cellState.owned && cellState.owned !== 'null') {
+                                if (cellState.owned === 'mine') {
+                                    const img = cell.querySelector('img');
+                                    if (img) img.style.display = 'none';
+                                    cell.style.background = 'url("../../resources/gifs/mine.gif") center center / cover no-repeat #fff';
+                                } else {
+                                    let ownerIdx = cellState.owner || cellState.owned;
+                                    if (!isNaN(ownerIdx) && Number(ownerIdx) >= 0 && Number(ownerIdx) < teams.length) {
+                                        ownerIdx = Number(ownerIdx);
+                                        cell.classList.add('owned');
+                                        cell.style.setProperty('--team-color', teams[ownerIdx].color);
+                                        cell.dataset.owner = ownerIdx;
+                                        cell.innerHTML = '';
+                                        const gif = document.createElement('img');
+                                        gif.src = `../../resources/gifs/${teams[ownerIdx].gif}`;
+                                        gif.alt = "זכיה";
+                                        gif.style.width = "100%";
+                                        gif.style.height = "100%";
+                                        gif.style.objectFit = "cover";
+                                        cell.appendChild(gif);
+                                    }
+                                }
+                            }
+                            if (cellState.imgHidden) {
+                                const img = cell.querySelector('img');
+                                if (img) img.style.display = 'none';
+                            }
+                        }
+                    });
+                }
+                // בדיקת ניצחון לאחר השחזור
+                setTimeout(() => {
+                    for (let teamIdx = 0; teamIdx < teams.length; teamIdx++) {
+                        for (let row = 0; row < 5; row++) {
+                            for (let col = 0; col < 5; col++) {
+                                const cell = document.querySelector(`.cell[data-row='${row}'][data-col='${col}']`);
+                                if (cell && cell.dataset.owner == teamIdx) {
+                                    const winCells = checkWin(row, col, teamIdx);
+                                    if (winCells) {
+                                        playSound('sound-win');
+                                        showWin(teams[teamIdx].name, teams[teamIdx].color);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }, 100);
+            } catch (e) { console.error('שחזור מצב משחק נכשל', e); }
+        }
+
+        // שמירה אוטומטית בכל שינוי מהותי
+        function saveOnChange() {
+            saveGameState();
+        }
     </script>
 </body>
 
