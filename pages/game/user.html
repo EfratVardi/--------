@@ -302,20 +302,20 @@
             const state = teamState[teamIdx];
             let options = [];
 
-            // בדיקת אפשרויות חוקיות
-            // if (
-            //     state.tasksCount < 3 &&
-            //     state.lastType !== 'task'
-            // ) {
-            //     options.push('task');
-            // }
-            // if (
-            //     state.minesCount < 2 &&
-            //     state.lastType !== 'mine' &&
-            //     totalMines < 4 // לא יותר מ-4 מוקשים בלוח
-            // ) {
-            //     options.push('mine');
-            // }
+           // בדיקת אפשרויות חוקיות
+            if (
+                state.tasksCount < 3 &&
+                state.lastType !== 'task'
+            ) {
+                options.push('task');
+            }
+            if (
+                state.minesCount < 2 &&
+                state.lastType !== 'mine' &&
+                totalMines < 4 // לא יותר מ-4 מוקשים בלוח
+            ) {
+                options.push('mine');
+            }
 
             options.push('color');
 
