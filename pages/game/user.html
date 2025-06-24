@@ -381,7 +381,6 @@
                     cell.classList.add('owned');
                     cell.style.setProperty('--team-color', teams[teamIdx].color);
                     cell.dataset.owned = teamIdx; // שמור את האינדקס של הקבוצה
-                    cell.dataset.owner = teamIdx;
                     // עדכון מצב קבוצה
                     teamState[teamIdx].tasksCount++;
                     teamState[teamIdx].lastType = 'task';
@@ -423,18 +422,6 @@
                     function () {
                         cell.style.background = 'url("../../resources/gifs/mine.gif") center center / cover no-repeat #fff';
                         saveOnChange(); // שמור את המצב לאחר מוקש
-                        // בדיקת ניצחון אחרי סגירת הפופאפ
-                        const row = Number(cell.dataset.row);
-                        const col = Number(cell.dataset.col);
-                        const winCells = checkWin(row, col, teamIdx);
-                        if (winCells) {
-                            playSound('sound-win');
-                            winCells.forEach(cell => cell.classList.add('win-seq'));
-                            setTimeout(() => {
-                                winCells.forEach(cell => cell.classList.remove('win-seq'));
-                                showWin(teams[teamIdx].name, teams[teamIdx].color);
-                            }, 1800);
-                        }
                     },
                     true,
                     '#000000'
@@ -463,7 +450,7 @@
                         cell.classList.add('owned');
                         cell.style.setProperty('--team-color', teams[teamIdx].color);
                         cell.dataset.owned = teamIdx; // שמור את האינדקס של הקבוצה
-                        cell.dataset.owner = teamIdx;
+
                         saveOnChange(); // שמור את המצב לאחר קבלת צ'ופר
                         // בדיקת ניצחון אחרי סגירת הפופאפ
                         const row = Number(cell.dataset.row);
@@ -500,7 +487,7 @@
                 let c = col + d;
                 while (c >= 0 && c < boardSize) {
                     const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${c}"]`);
-                    if (cell && cell.dataset.owner == teamIdx) {
+                    if (cell && cell.dataset.owned == teamIdx) {
                         cells.push(cell);
                         c += d;
                     } else break;
@@ -514,7 +501,7 @@
                 let r = row + d;
                 while (r >= 0 && r < boardSize) {
                     const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${col}"]`);
-                    if (cell && cell.dataset.owner == teamIdx) {
+                    if (cell && cell.dataset.owned == teamIdx) {
                         cells.push(cell);
                         r += d;
                     } else break;
@@ -644,7 +631,6 @@
 
         // --- שמירה וטעינה של מצב המשחק ---
         function saveGameState() {
-            // טען את המצב האחרון (אם קיים) כדי לא לאפס תאים שלא שונו
             let prevState = {};
             try {
                 const prevStr = localStorage.getItem(GAME_STATE_KEY);
@@ -662,7 +648,6 @@
                     row,
                     col,
                     owned: cell.dataset.owned !== undefined ? cell.dataset.owned : prev.owned || null,
-                    owner: cell.dataset.owner !== undefined ? cell.dataset.owner : prev.owner || null,
                     imgHidden: cell.querySelector('img') ? (cell.querySelector('img').style.display === 'none') : (prev.imgHidden || false)
                 };
             });
@@ -708,12 +693,12 @@
                                     if (img) img.style.display = 'none';
                                     cell.style.background = 'url("../../resources/gifs/mine.gif") center center / cover no-repeat #fff';
                                 } else {
-                                    let ownerIdx = cellState.owner || cellState.owned;
+                                    let ownerIdx = cellState.owned;
                                     if (!isNaN(ownerIdx) && Number(ownerIdx) >= 0 && Number(ownerIdx) < teams.length) {
                                         ownerIdx = Number(ownerIdx);
                                         cell.classList.add('owned');
                                         cell.style.setProperty('--team-color', teams[ownerIdx].color);
-                                        cell.dataset.owner = ownerIdx;
+                                        cell.dataset.owned = ownerIdx;
                                         cell.innerHTML = '';
                                         const gif = document.createElement('img');
                                         gif.src = `../../resources/gifs/${teams[ownerIdx].gif}`;
@@ -738,7 +723,7 @@
                         for (let row = 0; row < 5; row++) {
                             for (let col = 0; col < 5; col++) {
                                 const cell = document.querySelector(`.cell[data-row='${row}'][data-col='${col}']`);
-                                if (cell && cell.dataset.owner == teamIdx) {
+                                if (cell && cell.dataset.owned == teamIdx) {
                                     const winCells = checkWin(row, col, teamIdx);
                                     if (winCells) {
                                         playSound('sound-win');
