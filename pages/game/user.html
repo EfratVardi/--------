@@ -577,6 +577,19 @@
 
             // קונפטי
             launchConfetti(teamColor);
+
+            // הוספת כפתור איפוס אם לא קיים
+            let resetBtn = document.getElementById('win-reset-btn');
+            if (!resetBtn) {
+                resetBtn = document.createElement('button');
+                resetBtn.id = 'win-reset-btn';
+                resetBtn.className = 'flash-btn';
+                resetBtn.innerText = 'איפוס משחק';
+                resetBtn.style.marginTop = '32px';
+                resetBtn.style.fontSize = '1.5rem';
+                overlay.appendChild(resetBtn);
+            }
+            resetBtn.onclick = reset;
         }
 
         function reset() {
@@ -747,7 +760,7 @@
                                         cell.dataset.owned = ownerIdx;
                                         cell.innerHTML = '';
                                         const gif = document.createElement('img');
-                                        gif.src = `../../resources/gifs/${teams[ownerIdx].gif}`;
+                                        gif.src = `../../resources/gifs/${ownerIdx}.gif`;
                                         gif.alt = "זכיה";
                                         gif.style.width = "100%";
                                         gif.style.height = "100%";
