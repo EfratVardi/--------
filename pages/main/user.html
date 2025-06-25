@@ -16,18 +16,24 @@
     </div>
     <script>
         const PASSWORD = '0583259272';
+        const PASSWORD_EXPIRED = '0548562337'; // סיסמה מיוחדת להמשך אחרי פג תוקף
         const STORAGE_KEY = 'game_first_run_date';
-        const EXPIRE_DAYS = 2;
+        const EXPIRE_DAYS = 7;
+        let expiredMode = false;
 
         function onLoad() {
             // בדוק אם יש תאריך הפעלה
             const firstRun = localStorage.getItem(STORAGE_KEY);
+            const errorMsg = document.getElementById('error-msg');
+
             if (firstRun) {
                 const firstDate = new Date(firstRun);
                 const now = new Date();
                 const diff = (now - firstDate) / (1000 * 60 * 60 * 24);
                 if (diff >= EXPIRE_DAYS) {
-                    login("expired");
+                    errorMsg.innerText = 'פג תוקף המשחק, נא להכניס סיסמה ';
+                    errorMsg.style.display = 'block';
+                    expiredMode = true;
                     return;
                 } else {
                     login("../game/user");
@@ -38,11 +44,8 @@
         function checkPassword() {
             const input = document.getElementById('password-input').value;
             const errorMsg = document.getElementById('error-msg');
-            if (input === PASSWORD) {
-                // שמור תאריך הפעלה
-                if (!localStorage.getItem(STORAGE_KEY)) {
-                    localStorage.setItem(STORAGE_KEY, new Date().toISOString());
-                }
+            if (!expiredMode && input === PASSWORD || expiredMode && input === PASSWORD_EXPIRED ){
+                localStorage.setItem(STORAGE_KEY, new Date().toISOString());
                 login("../game/user");
             } else {
                 errorMsg.innerText = 'סיסמה שגויה';
