@@ -27,11 +27,11 @@
             <div class="action-popup-content">
                 <div id="task-popup-text"></div>
                 <div id="task-popup-timer" style="display:none; margin: 24px 0;">
+                    <button id="close-timer-btn" class="popup-btn"
+                        style="position:absolute;top:5px;left:5px;z-index:2000;background: #63209f; color: #fff;">סגירת טיימר</button>
                     <video id="timer-video" width="300" height="300" style="background:#000; border-radius:24px;">
                         <source src="../../resources/videos/timer.mp4" type="video/mp4">
                     </video>
-                    <button id="close-timer-btn" class="popup-btn"
-                        style="margin-top: 16px; background: #63209f; color: #fff;">סגור טיימר</button>
                 </div>
                 <div id="task-popup-buttons" style="margin-top:32px; display:flex; gap:24px;">
                     <button id="start-timer-btn" class="popup-btn">התחילי טיימר</button>
@@ -411,6 +411,8 @@
 
                 // כפתור סגירת טיימר
                 document.getElementById('close-timer-btn').onclick = function () {
+                    const video = document.getElementById('timer-video');
+                    video.pause();
                     document.getElementById('task-popup-timer').style.display = 'none';
                 };
 
