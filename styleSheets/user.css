@@ -12,7 +12,9 @@ html {
     box-sizing: border-box;
 }
 
-body, html, * {
+body,
+html,
+* {
     font-family: 'myFont', Arial, sans-serif !important;
 }
 
@@ -87,11 +89,8 @@ body, html, * {
 }
 
 .flash-btn {
-    position: fixed;
-    bottom: 40px;
-    left: 40px;
     padding: 18px 32px;
-    font-size: 1.3rem;
+    font-size: 1rem;
     background: #d4a4ff;
     color: #fff;
     border: none;
@@ -100,15 +99,13 @@ body, html, * {
         0 0 10px 2px #d4a4ff,
         0 2px 12px #0002;
     cursor: pointer;
-    font-weight: bold;
     animation: neon-flash 2.2s infinite alternate;
     z-index: 10;
     text-shadow: none;
     transition: box-shadow 0.3s, background 0.3s;
-    display: inline-block;
     width: auto;
     min-width: 120px;
-    margin: 0;
+    margin: 3px;
 }
 
 .flash-btn:hover,
@@ -586,35 +583,11 @@ button:focus,
 }
 
 .bottom-buttons-bar {
-    position: absolute;
-    left: 20px;
-    bottom: unset;
-    top: 88%;
-    display: flex;
+    display: inline-block;
     z-index: 1000;
-}
-
-.bottom-buttons-bar .flash-btn {
-    position: static;
-    margin: 0;
-}
-
-.bottom-buttons-bar .flash-btn:first-child {
-    margin-left: 32px;
-}
-
-#instructions-popup .close-btn {
     position: absolute;
-    top: 16px;
-    right: 16px;
-    background: #63209f;
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    font-size: 20px;
-    cursor: pointer;
+    left: 2%;
+    top: 90%;
 }
 
 .credit-bar {

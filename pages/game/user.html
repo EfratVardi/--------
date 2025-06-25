@@ -13,12 +13,14 @@
 <body>
     <div class="background">
         <div class="bottom-buttons-bar">
+            <button id="reset-btn" class="flash-btn">איפוס משחק</button>
             <button id="instructions-btn" class="flash-btn">הוראות</button>
             <button id="draw-btn" class="flash-btn">הגרלת תור חדש</button>
+
         </div>
         <div id="game-board" class="game-board"></div>
         <div class="credit-bar">
-             פיתוח: אפרת מלכה 0504167969 211efrat@gmail.com
+            פיתוח: אפרת מלכה 0504167969 211efrat@gmail.com
         </div>
         <!-- פופאפ למשימה -->
         <div id="task-popup" class="action-popup" style="display:none;">
@@ -259,7 +261,17 @@
         // --- כאן נטען את מצב המשחק רק אחרי שכל התאים נבנו ---
         loadGameState();
 
-        function showActionPopup(text, html, onClose, autoClose = false, teamColor = null, fontSize = null) {
+        /**
+         * פופאפ פעולה דינאמי
+         * @param {string} text - טקסט ראשי
+         * @param {string} html - HTML נוסף (למשל תמונה)
+         * @param {function|null} onConfirm - פעולה לאישור
+         * @param {boolean} autoClose - האם לסגור אוטומטית
+         * @param {string|null} teamColor - צבע רקע
+         * @param {string|null} fontSize - גודל פונט
+         * @param {object} buttons - אילו כפתורים להציג: {close:bool, confirm:bool, cancel:bool}
+         */
+        function showActionPopup(text, html, onConfirm, autoClose = false, teamColor = null, fontSize = null, buttons = { close: true, confirm: false, cancel: false }) {
             const popup = document.getElementById('action-popup');
             const popupContent = popup.querySelector('.action-popup-content');
             const textDiv = document.getElementById('action-popup-text');
@@ -281,22 +293,58 @@
                 textDiv.style.fontSize = '';
             }
 
+            // הסרת כפתורי אישור/ביטול קודמים
+            let btnsDiv = document.getElementById('action-popup-btns');
+            if (btnsDiv) btnsDiv.remove();
+
+            // שליטה על כפתורים
             const closeBtn = document.getElementById('action-popup-close');
+            closeBtn.style.display = (buttons.close) ? '' : 'none';
+            closeBtn.onclick = function () {
+                popup.style.display = 'none';
+                // החזרת רקע לברירת מחדל
+                popupContent.style.background = "#fff";
+                textDiv.style.fontSize = '';
+            };
+
+            if (buttons.confirm || buttons.cancel) {
+                btnsDiv = document.createElement('div');
+                btnsDiv.id = 'action-popup-btns';
+                btnsDiv.style.marginTop = '32px';
+                btnsDiv.style.display = 'flex';
+                btnsDiv.style.gap = '24px';
+                btnsDiv.style.justifyContent = 'center';
+                popupContent.appendChild(btnsDiv);
+                if (buttons.confirm) {
+                    const confirmBtn = document.createElement('button');
+                    confirmBtn.className = 'popup-btn';
+                    confirmBtn.style.background = '#b056ff';
+                    confirmBtn.style.color = '#fff';
+                    confirmBtn.innerText = 'אישור';
+                    btnsDiv.appendChild(confirmBtn);
+                    confirmBtn.onclick = function () {
+                        popup.style.display = 'none';
+                        if (onConfirm) onConfirm();
+                    };
+                }
+                if (buttons.cancel) {
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.className = 'popup-btn';
+                    cancelBtn.style.background = '#888';
+                    cancelBtn.style.color = '#fff';
+                    cancelBtn.innerText = 'ביטול';
+                    btnsDiv.appendChild(cancelBtn);
+                    cancelBtn.onclick = function () {
+                        popup.style.display = 'none';
+                    };
+                }
+            }
             if (autoClose) {
                 closeBtn.style.display = 'none';
                 setTimeout(() => {
                     popup.style.display = 'none';
-                    if (onClose) onClose();
+                    if (onConfirm) onConfirm();
                 }, 3000);
-            } else {
-                closeBtn.style.display = '';
-                closeBtn.onclick = function () {
-                    popup.style.display = 'none';
-                    if (onClose) onClose();
-                    // החזרת רקע לברירת מחדל
-                    popupContent.style.background = "#fff";
-                    textDiv.style.fontSize = '';
-                };
             }
         }
         // פונקציה שמבצעת את ההגרלה אחרי הפיצוץ
@@ -305,7 +353,7 @@
             const state = teamState[teamIdx];
             let options = [];
 
-           // בדיקת אפשרויות חוקיות
+            // בדיקת אפשרויות חוקיות
             if (
                 state.tasksCount < 3 &&
                 state.lastType !== 'task'
@@ -527,33 +575,12 @@
 
             // קונפטי
             launchConfetti(teamColor);
-
-            // הסרת כפתור יציאה אם קיים
-            const exitBtn = document.getElementById('exit-btn');
-            if (exitBtn) exitBtn.style.display = 'none';
-
-            // כפתור איפוס משחק
-            let resetBtn = document.getElementById('reset-btn');
-            if (!resetBtn) {
-                resetBtn = document.createElement('button');
-                resetBtn.id = 'reset-btn';
-                resetBtn.innerText = 'איפוס משחק';
-                resetBtn.style.fontSize = '1.5rem';
-                resetBtn.style.padding = '18px 48px';
-                resetBtn.style.borderRadius = '18px';
-                resetBtn.style.background = '#b056ff';
-                resetBtn.style.color = '#fff';
-                resetBtn.style.border = 'none';
-                resetBtn.style.boxShadow = '0 2px 12px #0003';
-                resetBtn.style.cursor = 'pointer';
-                resetBtn.style.marginTop = '24px';
-                overlay.appendChild(resetBtn);
-            }
-            resetBtn.onclick = function () {
-                localStorage.removeItem(GAME_STATE_KEY);
-                window.location.reload();
-            };
         }
+
+        function reset() {
+            localStorage.removeItem(GAME_STATE_KEY);
+            window.location.reload();
+        };
 
         function launchConfetti(mainColor) {
             const canvas = document.getElementById('confetti-canvas');
@@ -627,9 +654,23 @@
                         null,
                         false,
                         '#d4a4ff',
-                        '2.5rem'
+                        '2.5rem',
+                        { close: true }
                     );
                 });
+        };
+
+        // פופאפ איפוס
+        document.getElementById('reset-btn').onclick = function () {
+            showActionPopup(
+                'איפוס משחק',
+                'האם אתן בטוחות שאתן רוצות לאפס את המשחק?<br>כל ההתקדמות תימחק!',
+                reset,
+                false,
+                '',
+                '2.5rem',
+                { close: false, confirm: true, cancel: true }
+            );
         };
 
         // --- שמירה וטעינה של מצב המשחק ---
