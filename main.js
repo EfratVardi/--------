@@ -7,7 +7,7 @@ function createWindow() {
   let ses = session.defaultSession
 
   mainWindow = new BrowserWindow({
-    width: 800, height: 600,
+    width: 1800, height: 800,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,

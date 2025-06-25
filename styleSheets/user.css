@@ -586,7 +586,7 @@ button:focus,
     display: inline-block;
     z-index: 1000;
     position: absolute;
-    left: 2%;
+    left: 1%;
     top: 90%;
 }
 
