@@ -546,7 +546,7 @@
                     } else break;
                 }
             }
-            if (cells.length >= 2) return cells;
+            if (cells.length >= 3) return cells;
 
             // אנכי
             cells = [document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`)];
@@ -560,7 +560,7 @@
                     } else break;
                 }
             }
-            if (cells.length >= 2) return cells;
+            if (cells.length >= 3) return cells;
 
             return null;
         }
